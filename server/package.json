@@ -1,16 +1,16 @@
 {
-  "name": "mandala-iitc",
+  "name": "Qu-on",
   "version": "1.0.0",
-  "description": "MANDALA System. IITC.",
+  "description": "control music player via chat.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "chromy": "^0.5.1",
-    "telegram-bot-api": "^1.2.1",
-    "form-data": "^2.3.2",
-    "request": "^2.87.0"
+    "mpris": "git+https://github.com/JumpLink/node-mpris.git",
+    "request": "^2.87.0",
+    "telegram-bot-api": "^2.0.1",
+    "tm-node-mpd": "^0.3.1"
   },
   "author": "isnot",
   "license": "MIT"
