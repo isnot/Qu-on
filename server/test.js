@@ -57,16 +57,28 @@ mpris.Player.on('PlaybackStatusChanged', function (newValue, oldValue) {
 //   console.log(mpris.Player.Playlists);
 // });
 
-mpris.connect('NuvolaAppYoutubeMusic', function (error) {
+// mpris.connect('NuvolaAppYoutubeMusic', function (error) {
+//   console.log(error);
+//   mpris.Player.OpenUri('https://youtu.be/c0TJUVQ2hDI', function (error) {
+//     mpris.Player.Play(function(error){
+//       console.log(error);
+//       setTimeout(() => {
+//         console.log('NEXT!!');
+//         mpris.Player.Next();
+//       }, 20000);
+//     });
+//     console.log(mpris.Player.Playlists);
+//   });
+// });
+
+mpris.connect('mpd', (error) => {
+  console.log(mpris.Player.Playlists);
+  mpris.Player.Play();
+  mpris.Player.Next();
+  setTimeout(() => {
+    console.log('NEXT!!');
+    mpris.Player.Next();
+  }, 20000);
   console.log(error);
-  mpris.Player.OpenUri('https://youtu.be/c0TJUVQ2hDI', function (error) {
-    mpris.Player.Play(function(error){
-      console.log(error);
-      setTimeout(() => {
-        console.log('NEXT!!');
-        mpris.Player.Next();
-      }, 20000);
-    });
-    console.log(mpris.Player.Playlists);
-  });
+  console.log(mpris.Player.Playlists);
 });
