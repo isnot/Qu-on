@@ -3,7 +3,15 @@ Telegram Botとのプライベート・チャット
 コマンド入力
 メセージ出力
 
+バックエンド（オーディオ・プレイヤー）との接続は、3種類
+MPD
+playerctl
+D-bus/Mpris
 
+https://www.musicpd.org/doc/html/protocol.html
+https://github.com/RomanBurunkov/tm-node-mpd
+https://github.com/mast/telegram-bot-api
+https://github.com/JumpLink/node-mpris
 
 Supervisorでメインプロセス監視
 
@@ -35,6 +43,12 @@ Telegram Bot APIフレームワーク
 Mprisコマンド送出
 Mprisシグナル受信
 
+インテリジェントな停止
+即時、フェードアウトしながら停止する
+今の曲の最後でフェードアウト
+次の曲の最後でフェードアウト
+n分後、再生中の曲の最後でフェードアウト
+今の曲の最後、もしくはn分後のいずれか早い方でフェードアウト
 
 
 vlc
@@ -62,3 +76,22 @@ NuvolaAppSoundcloud
 $ playerctl -p NuvolaAppYoutubeMusic next
 $ playerctl -a stop
 メディアの追加やプレイリストの操作は、多分できない？
+
+
+
+MPD インスタンス生成
+TG インスタンス生成
+
+MPD イベント登録
+TG イベント登録
+
+MPD connect
+TG connect
+
+MPD updateイベント
+    MPD状態変化→TGへ通知
+
+TG updateイベント
+    ユーサーの指令を受け取る→MPD操作
+
+
