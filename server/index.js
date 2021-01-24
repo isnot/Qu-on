@@ -8,11 +8,10 @@ const config = require('./settings.json');
 
   try {
     await bot.once().catch(console.log);
-  } catch(e) {
+  } catch (e) {
     console.log(e);
   }
   if (!bot.in_process) {
     setTimeout(() => process.exit(), 10000);
   }
-
 })();

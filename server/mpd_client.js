@@ -1,9 +1,8 @@
 const MPD = require('tm-node-mpd');
 
 class MPD_Client {
-
   constructor(config) {
-    this.config = {...config};
+    this.config = { ...config };
     this.mpd = new MPD({ type: 'ipc' });
     this.chat = undefined;
   }
@@ -14,15 +13,13 @@ class MPD_Client {
       try {
         console.log(mpd.status);
         // await mpd.volume(volume);
-
       } catch (e) {
         console.error(e);
-      } finally {
-        mpd.disconnect();
       }
     });
 
     await this.mpd.connect();
+    console.log(new Date(), 'MPD Client is connected');
   }
 
   async destory() {
@@ -32,33 +29,27 @@ class MPD_Client {
 
   async wait_sec(sec = 1) {
     const milsec = sec * 1000;
-    await new Promise(resolve => setTimeout(resolve, milsec));
+    await new Promise((resolve) => setTimeout(resolve, milsec));
   }
 
-  async fadeout() {
-  }
+  async fadeout() {}
 
   // 即時、フェードアウトしながら停止する
-  async fade_and_stop() {
-  }
+  async fade_and_stop() {}
 
   // 今の曲の最後でフェードアウト
-  async stop_on_now_playing() {
-  }
+  async stop_on_now_playing() {}
 
   // 次の曲の最後でフェードアウト
-  async stop_on_next_playing() {
-  }
+  async stop_on_next_playing() {}
 
   // n分後、再生中の曲の最後でフェードアウト
-  async after_minute_and_stop_on_playing() {
-  }
+  async after_minute_and_stop_on_playing() {}
 
   // 今の曲の最後、もしくはn分後のいずれか早い方でフェードアウト
-  async stop_on_now_playing_or_minute() {
-  }
+  async stop_on_now_playing_or_minute() {}
 }
 
 module.exports = {
-  MPD_Client
+  MPD_Client,
 };
