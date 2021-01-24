@@ -1,6 +1,7 @@
 {
   "env": {
     "browser": true,
+    "commonjs": true,
     "es2020": true
   },
   "extends": [
@@ -36,7 +37,10 @@
     "no-unreachable": "error",
     "indent": [
       "error",
-      2
+      2,
+      {
+        "SwitchCase": 1
+      }
     ],
     "linebreak-style": [
       "error",
