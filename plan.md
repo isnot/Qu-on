@@ -12,6 +12,7 @@ https://www.musicpd.org/doc/html/protocol.html
 https://github.com/RomanBurunkov/tm-node-mpd
 https://github.com/mast/telegram-bot-api
 https://github.com/JumpLink/node-mpris
+https://github.com/altdesktop/playerctl
 
 Supervisorでメインプロセス監視
 
