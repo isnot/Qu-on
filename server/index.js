@@ -9,7 +9,7 @@ const config = require('./settings.json');
   try {
     await bot.once().catch(console.log);
   } catch (e) {
-    console.log(e);
+    console.log('DEBUG toplevel', e);
   }
   if (!bot.in_process) {
     setTimeout(() => process.exit(), 10000);

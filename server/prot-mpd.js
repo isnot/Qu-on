@@ -1,25 +1,24 @@
+'use strict';
 
-const MPD = require('tm-node-mpd');
-const mpd = new MPD({ type: 'ipc' });
 const util = require('util');
-// const mpris = require('node-mpris');
-
-
-
-mpd.on('ready', async () => {
-  try {
-    console.log(mpd.status);
-    // await mpd.volume(volume);
-
-  } catch (e) {
-    console.error(e);
-  } finally {
-    mpd.disconnect();
-  }
-});
-
-mpd.connect();
+const hasProperty = Object.prototype.hasOwnProperty;
 
 function debug(value) {
   console.log(util.inspect(value, showHidden=false, depth=2, colorize=true));
 }
+const { BotManager } = require('./manager.js');
+const config = require('./settings.json');
+
+(async () => {
+  const bot = new BotManager(config);
+
+  try {
+    // await bot.once().catch(console.log);
+    bot.start();
+  } catch (e) {
+    console.log('DEBUG toplevel', e);
+  }
+  if (!bot.in_process) {
+    setTimeout(() => process.exit(), 10000);
+  }
+})();

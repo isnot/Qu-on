@@ -5,24 +5,30 @@ class TelegramBot_poll {
     this.config = { ...config };
     this.tg = new telegram({ token: config.bot_api_key });
     this.player = undefined;
+    this.reply_chat_id = undefined;
   }
 
-  async setup(player) {
-    this.tg.setMessageProvider(new telegram.GetUpdateMessageProvider());
+  async prepare(player) {
     this.player = player;
+    await this.tg.start(); // .catch(console.err);
+    console.log(new Date(), '[Qu-on] Tg GetUpdateMessageProvider is started');
+  }
 
-    tg.on('update', (update) => {
+  async setup() {
+    this.tg.setMessageProvider(new telegram.GetUpdateMessageProvider());
+
+    this.tg.on('update', (update) => {
       const chat_id = update.message.chat.id;
+      this.reply_chat_id = chat_id;
       this.sendMessage('your Message is: ' + update.message.text, { chat_id: chat_id });
       const command = this.parseMessage(update.message);
-      console.log('DEBUG tg setup command:=', command);
-      if (Object.hasOwnProperty.call(this.player, command.name)) {
-        this.player[command.name].call(null, command);
+      console.log('DEBUG tg command:=', command);
+      if (typeof this.player[command.name] === 'function') {
+        this.player[command.name].call(this.player, command);
+      } else {
+        console.log(`DEBUG notexists ${command.name}`, Object.getOwnPropertyNames(this.player));
       }
     });
-
-    await this.tg.start(); // .catch(console.err);
-    console.log(new Date(), 'Tg GetUpdateMessageProvider is started');
   }
 
   async destory() {
@@ -39,14 +45,17 @@ class TelegramBot_poll {
   }
 
   async sendMessage(text = '*', options = {}) {
+    const fallback_chat_id = Number.isSafeInteger(this.reply_chat_id)
+      ? this.reply_chat_id
+      : this.config.chat_id;
     const data = {
-      chat_id: this.config.chat_id,
+      chat_id: fallback_chat_id,
       text: text,
       disable_web_page_preview: this.config.disable_web_page_preview,
       parse_mode: this.config.parse_mode,
       ...options,
     };
-    console.log(data);
+    // DEBUG console.log(data);
     const response = await this.tg.sendMessage(data);
     console.log('[Qu-on] sendMessage response: ', response);
   }

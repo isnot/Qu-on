@@ -1,5 +1,5 @@
-const { mpd_client } = require('./mpd_client.js');
-const { telegram_bot_poll } = require('./telegram_bot_poll.js');
+const { MPD_Client } = require('./mpd_client.js');
+const { TelegramBot_poll } = require('./telegram_bot_poll.js');
 const util = require('util');
 // const mpris = require('node-mpris');
 // const msheet = require('./mandala_sheet_service/');
@@ -21,10 +21,12 @@ class BotManager {
   async start() {
     this.in_process = true;
 
-    this.mpd = mpd_client;
-    this.tg = telegram_bot_poll;
-    await this.mpd.setup(telegram_bot_poll);
-    await this.tg.setup(mpd_client);
+    this.mpd = new MPD_Client(this.config);
+    this.tg = new TelegramBot_poll(this.config);
+    await this.mpd.setup();
+    await this.tg.setup();
+    await this.mpd.prepare(this.tg);
+    await this.tg.prepare(this.mpd);
   }
 
   async end() {
