@@ -28,7 +28,7 @@ class MPD_Client {
       console.log('MPD Update:', status);
       if (status === 'playlist') {
         await this.mpd.updateStatus();
-        const nowplaying = this.mpd.playlist[this.mpd.status.playlist];
+        const nowplaying = this.chat_now();
         console.log('[Qu-on] now playing', nowplaying);
         this.chat.sendMessage(`💿▶${String(nowplaying)}`);
       }
@@ -116,7 +116,8 @@ class MPD_Client {
 
   async chat_now() {
     await this.mpd.updateStatus();
-    console.log(this.mpd.playlist, this.mpd.status);
+    const now = this.mpd.currentsong();
+    console.log(now, this.mpd.status);
     const nowplaying = ''; // this.mpd.playlist[this.mpd.status.playlist];
     console.log('[Qu-on] now playing', nowplaying);
     this.chat.sendMessage(`💿▶${String(nowplaying)}`);

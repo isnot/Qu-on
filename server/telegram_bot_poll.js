@@ -20,7 +20,7 @@ class TelegramBot_poll {
     this.tg.on('update', (update) => {
       const chat_id = update.message.chat.id;
       this.reply_chat_id = chat_id;
-      this.sendMessage('DEBUG Message' + update.message.text, { chat_id: chat_id });
+      this.sendMessage('DEBUG Message: ' + update.message.text, { chat_id: chat_id });
       const command = this.parseMessage(update.message);
       console.log('DEBUG tg command:=', command);
       if (typeof this.player[command.name] === 'function') {
