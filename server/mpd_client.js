@@ -5,6 +5,7 @@ class MPD_Client {
     this.config = { ...config };
     this.mpd = new MPD(config.mpd_connect);
     this.chat = undefined;
+    this.songId = undefined;
   }
 
   async prepare(chat) {
@@ -15,22 +16,20 @@ class MPD_Client {
 
   async setup() {
     this.mpd.on('error', async (e) => {
-      console.log(new Date(), '[Qu-on] MPD ERROR', String(e).substr(0, 40));
+      console.log(new Date(), '[Qu-on] MPD ERROR', String(e).substr(0, 90));
     });
     this.mpd.on('ready', async () => {
       try {
-        console.log(this.mpd.status);
+        console.log('ready', this.mpd.status);
       } catch (e) {
         console.error(e);
       }
     });
     this.mpd.on('update', async (status) => {
       console.log('MPD Update:', status);
-      if (status === 'playlist') {
-        await this.mpd.updateStatus();
-        const nowplaying = this.chat_now();
-        console.log('[Qu-on] now playing', nowplaying);
-        this.chat.sendMessage(`💿▶${String(nowplaying)}`);
+      if (status === 'player') {
+        await this.updateStatus();
+        await this.chat_now();
       }
     });
   }
@@ -44,6 +43,17 @@ class MPD_Client {
   async wait_sec(sec = 1) {
     const milsec = sec * 1000;
     await new Promise((resolve) => setTimeout(resolve, milsec));
+  }
+
+  async updateStatus(callback) {
+    const oldSongId = this.mpd.songId;
+    await this.mpd.updateStatus();
+    if (this.hasProperty(this, callback)) {
+      await this[callback].call(this);
+    }
+    if (oldSongId !== this.mpd.songId) {
+      this.songId = this.mpd.songId;
+    }
   }
 
   async chat_crossfade(arg = { params: [] }) {
@@ -73,12 +83,17 @@ class MPD_Client {
 
   // 今の曲の最後でフェードアウト
   async chat_stop_on_now_playing() {
-    await this.mpd.updateStatus();
+    await this.updateStatus();
     const remains = this.mpd.status.duration - this.mpd.status.elapsed;
     console.log(`[Qu-on] going to stop in ${remains} sec`);
-    this.chat.sendMessage(`⛔going to stop in ${parseInt(remains, 10)} sec⏰`);
-    await this.wait_sec(remains - 14);
-    await this.chat_fadeout();
+    const procedure = [await this.chat.sendMessage(`⛔going to stop in ${this.formatSeconds(remains)}`)];
+    procedure.push(
+      (async () => {
+        await this.wait_sec(remains - 14);
+        await this.chat_fadeout();
+      })()
+    );
+    await Promise.all(procedure);
   }
 
   // 次の曲の最後でフェードアウト
@@ -90,7 +105,7 @@ class MPD_Client {
     console.log(`DEBUG going to stop in ${min} min`);
     if (Number.isSafeInteger(min)) {
       console.log(`[Qu-on] going to stop in ${min} min`);
-      this.chat.sendMessage(`timer set by ${min}+ min⏰`);
+      await this.chat.sendMessage(`⏰timer set ${min}+ min`);
       await this.wait_sec(min * 60);
       await this.chat_stop_on_now_playing();
     }
@@ -101,13 +116,13 @@ class MPD_Client {
     const min = arg.params.length > 0 ? Number(arg.params.shift()) : 1;
     if (Number.isSafeInteger(min)) {
       const waitsec = min * 60;
-      await this.mpd.updateStatus();
+      await this.updateStatus();
       const remains = this.mpd.status.duration - this.mpd.status.elapsed;
       if (waitsec > remains) {
         await this.chat_stop_on_now_playing();
       } else {
         console.log(`[Qu-on] going to stop in ${min} min`);
-        this.chat.sendMessage(`⛔going to stop in ${min} min⏰`);
+        await this.chat.sendMessage(`⛔going to stop in ${min} min`);
         await this.wait_sec(min * 60);
         await this.chat_fadeout();
       }
@@ -115,13 +130,76 @@ class MPD_Client {
   }
 
   async chat_now() {
-    await this.mpd.updateStatus();
-    const now = this.mpd.currentsong();
+    const oldSongId = this.mpd.songId;
+    const now = await this.mpd.currentSong();
     console.log(now, this.mpd.status);
-    const nowplaying = ''; // this.mpd.playlist[this.mpd.status.playlist];
-    console.log('[Qu-on] now playing', nowplaying);
-    this.chat.sendMessage(`💿▶${String(nowplaying)}`);
+    await this.updateStatus();
+    if (oldSongId !== this.mpd.songId) {
+      const nowplaying = this.parseSong({ ...this.mpd.status, ...now });
+      console.log('[Qu-on] now playing', nowplaying);
+      await this.chat.sendMessage(`▶${nowplaying}`);
+    }
   }
+
+  async chat_key() {
+    await this.chat.sendMessage('?', {
+      reply_markup: {
+        inline_keyboard: this.config.user_keybord,
+      },
+    });
+  }
+
+  parseSong(song) {
+    const artist = this.safeRetrieve(song, 'Artist', '');
+    const title = this.safeRetrieve(song, 'Title', '');
+    const file = this.safeRetrieve(song, 'file', '');
+    const id = this.safeRetrieve(song, 'Id', '');
+    const elapsed = this.safeRetrieve(song, 'elapsed', '');
+    return `[${id}] ${this.formatSeconds(elapsed)}\n👤${artist} 🎵${title}\n💿${file}`;
+  }
+
+  safeRetrieve(target, pos, alternate) {
+    try {
+      const value = this.deepRetrieve(target, pos);
+      return typeof value === 'string' ? value : alternate;
+    } catch (e) {
+      return alternate;
+    }
+  }
+
+  deepRetrieve(target, pos) {
+    let cur = target;
+    if (typeof pos !== 'string' || typeof target !== 'object' || target === null) {
+      return undefined;
+    }
+    try {
+      pos.split('.').forEach((el) => {
+        if (this.hasProperty(cur, el)) {
+          cur = cur[el];
+        } else {
+          throw new Error('deepRetrieve: element not found');
+        }
+      });
+    } catch (e) {
+      return undefined;
+    }
+    return cur;
+  }
+
+  // const hasProperty = Object.prototype.hasOwnProperty;
+  hasProperty(obj, prop) {
+    return Object.prototype.hasOwnProperty.call(obj, prop);
+  }
+
+  formatSeconds(sec = 0) {
+    const min = Math.trunc(sec / 60);
+    const sec_f = Number.parseFloat(sec % 60).toFixed(2);
+    const s_sec = Number(sec_f) < 10 ? `0${sec_f}` : String(sec_f);
+    return `${min}:${s_sec}`;
+  }
+
+  // const util = require('util');
+  // util.inspect(value, { showHidden: false, depth: 1, colorize: true });
 }
 
 module.exports = {
