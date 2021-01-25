@@ -20,18 +20,19 @@ class TelegramBot_poll {
     this.tg.on('update', (update) => {
       const chat_id = update.message.chat.id;
       this.reply_chat_id = chat_id;
-      this.sendMessage('your Message is: ' + update.message.text, { chat_id: chat_id });
+      this.sendMessage('DEBUG Message' + update.message.text, { chat_id: chat_id });
       const command = this.parseMessage(update.message);
       console.log('DEBUG tg command:=', command);
       if (typeof this.player[command.name] === 'function') {
         this.player[command.name].call(this.player, command);
       } else {
-        console.log(`DEBUG notexists ${command.name}`, Object.getOwnPropertyNames(this.player));
+        console.log(`DEBUG notexists ${command.name}`);
       }
     });
   }
 
   async destory() {
+    console.log('[Qu-on] TG will be stopped...' + new Date());
     this.tg.stop();
     this.tg = undefined;
   }
@@ -57,7 +58,7 @@ class TelegramBot_poll {
     };
     // DEBUG console.log(data);
     const response = await this.tg.sendMessage(data);
-    console.log('[Qu-on] sendMessage response: ', response);
+    console.log('[Qu-on] sendMessage response: %o', response);
   }
 }
 

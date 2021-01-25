@@ -3,7 +3,7 @@ const MPD = require('tm-node-mpd');
 class MPD_Client {
   constructor(config) {
     this.config = { ...config };
-    this.mpd = new MPD({ type: 'ipc' });
+    this.mpd = new MPD(config.mpd_connect);
     this.chat = undefined;
   }
 
@@ -25,7 +25,7 @@ class MPD_Client {
       }
     });
     this.mpd.on('update', async (status) => {
-      console.log('Update:', status);
+      console.log('MPD Update:', status);
       if (status === 'playlist') {
         await this.mpd.updateStatus();
         const nowplaying = this.mpd.playlist[this.mpd.status.playlist];
@@ -36,6 +36,7 @@ class MPD_Client {
   }
 
   async destory() {
+    console.log('[Qu-on] MPD will be stopped...' + new Date());
     this.mpd.disconnect();
     this.mpd = undefined;
   }
@@ -48,7 +49,7 @@ class MPD_Client {
   async chat_crossfade(arg = { params: [] }) {
     const sec = arg.params.length > 0 ? arg.params.shift() : 1;
     if (Number.isSafeInteger(sec)) {
-      console.log(`[Qu-on] tobe crossfade in ${sec} sec.`);
+      console.log(`[Qu-on] set crossfade to ${sec} sec.`);
       await this.mpd.crossfade(sec);
     }
   }
@@ -111,6 +112,14 @@ class MPD_Client {
         await this.chat_fadeout();
       }
     }
+  }
+
+  async chat_now() {
+    await this.mpd.updateStatus();
+    console.log(this.mpd.playlist, this.mpd.status);
+    const nowplaying = ''; // this.mpd.playlist[this.mpd.status.playlist];
+    console.log('[Qu-on] now playing', nowplaying);
+    this.chat.sendMessage(`💿▶${String(nowplaying)}`);
   }
 }
 

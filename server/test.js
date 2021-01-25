@@ -1,24 +1,20 @@
 //#!/usr/bin/env node
 
 //  process.exit(code=0);
-
-
-var util = require('util');
+// var util = require('util');
 var mpris = require('/home/naoto/repository/node-mpris/mpris.js');
 
 mpris.Player.on('MetadataChanged', function (newValue, oldValue) {
-  if(!oldValue || Object.keys(newValue).length != Object.keys(oldValue).length) {
-    console.log("Metadata updated:");
-    console.log(util.inspect(newValue, showHidden=false, depth=2, colorize=true));
+  if (!oldValue || Object.keys(newValue).length != Object.keys(oldValue).length) {
+    console.log('Metadata updated:');
   }
 });
 
-
 mpris.Player.on('PlaybackStatusChanged', function (newValue, oldValue) {
-  if(newValue != oldValue) {
+  if (newValue != oldValue) {
     mpris.GetIdentity(function (error, identity) {
       mpris.Player.GetMetadata(function (error, metadata) {
-        console.log(identity+' is now '+newValue.toLowerCase()+' "'+metadata['xesam:url']+'"');
+        console.log(identity + ' is now ' + newValue.toLowerCase() + ' "' + metadata['xesam:url'] + '"');
       });
     });
   }
@@ -44,7 +40,6 @@ mpris.Player.on('PlaybackStatusChanged', function (newValue, oldValue) {
 // vlc
 // NuvolaAppYoutubeMusic
 // NuvolaAppSoundcloud
-
 
 // mpris.connect('NuvolaAppSoundcloud', (error) => {
 //   mpris.Player.Play();

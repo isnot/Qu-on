@@ -7,7 +7,7 @@ const config = require('./settings.json');
   const bot = new BotManager(config);
 
   try {
-    await bot.once().catch(console.log);
+    await bot.start().catch(console.log);
   } catch (e) {
     console.log('DEBUG toplevel', e);
   }
