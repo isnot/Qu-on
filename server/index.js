@@ -12,6 +12,7 @@ const config = require('./settings.json');
     console.log('DEBUG toplevel', e);
   }
   if (!bot.in_process) {
+    // eslint-disable-next-line no-undef
     setTimeout(() => process.exit(), 10000);
   }
 })();
