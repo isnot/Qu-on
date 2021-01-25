@@ -9,7 +9,7 @@ playerctl
 D-bus/Mpris
 
 https://www.musicpd.org/doc/html/protocol.html
-https://github.com/RomanBurunkov/tm-node-mpd
+https://github.com/isnot/tm-node-mpd/tree/isnot
 https://github.com/mast/telegram-bot-api
 https://github.com/JumpLink/node-mpris
 https://github.com/altdesktop/playerctl
@@ -21,20 +21,17 @@ Node.jsでメインプロセス稼働→サービス化
 Telegram Bot APIフレームワーク
 ポーリング形式
 コマンド取得
+ユーザー認証
 
 プロセス開始
 
-
-
 ステータス問い合わせ
-
 
 プレーヤー操作
 再生
 停止
 次へ
 前へ
-
 
 プレイリスト操作／管理
 現在のプレイリスト（再生キュー）表示
@@ -59,7 +56,6 @@ vlc
 NuvolaAppYoutubeMusic
 事前にアプリ起動、Libraryからプレイリストを選択して、プレイ画面にしておく。
 可能な操作は、PlayとNextとStop程度か？
-
 
 NuvolaAppSoundcloud
 事前にアプリ起動しておく。
@@ -94,5 +90,4 @@ MPD updateイベント
 
 TG updateイベント
     ユーサーの指令を受け取る→MPD操作
-
-
+    massege, update
