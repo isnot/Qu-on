@@ -20,37 +20,44 @@ class BotManager {
     this.tg = undefined;
   }
 
-  async start() {
+  async start(func) {
     this.in_process = true;
     this.mpd = new MPD_Client(this.config);
     this.tg = new TelegramBot_poll(this.config);
     await Promise.all([await this.mpd.setup(), await this.tg.setup()]);
     await Promise.all([await this.mpd.prepare(this.tg), await this.tg.prepare(this.mpd)]);
-    // debugger;
+
+    if (typeof func === 'function') {
+      await this.timer(func);
+      // debugger;
+    }
     await this.end().catch(console.log);
   }
 
   async end() {
     if (this.iv !== 0) {
-      clearInterval(this.iv);
+      // clearInterval(this.iv);
       this.iv = 0;
     }
     await Promise.all([await this.mpd.destory(), await this.tg.destory()]);
     this.in_process = false;
   }
 
-  async timer() {
-    console.log('[Qu-on] wakeup...' + new Date());
-    if (!this.in_process && !this.iv) {
-      await this.start();
-      const iv = setInterval(() => this.comsumeRequests(), this.config.process_interval_milsec);
-      this.iv = iv;
-    }
-    return this.iv;
+  async sleep(sec = 1) {
+    const milsec = sec * 1000;
+    await new Promise((resolve) => setTimeout(resolve, milsec));
   }
 
-  async comsumeRequests() {
-    throw new Error('Not suported action');
+  async timer(callback = () => {}) {
+    console.log('[Qu-on] wakeup...' + new Date());
+    if (this.in_process && this.iv === 0) {
+      while (true) {
+        this.iv += 1;
+        // 本処理と sleep を同時実行して最低間隔を確保する
+        await Promise.all([callback(), this.sleep(this.config.process_interval_sec)]);
+      }
+    }
+    // throw new Error('Not suported action');
   }
 }
 

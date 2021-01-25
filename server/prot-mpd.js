@@ -8,7 +8,7 @@ const config = require('./settings.json');
 
   try {
     // await bot.start().catch(console.log);
-    bot.start();
+    await bot.start(() => {});
   } catch (e) {
     console.log('DEBUG toplevel', e);
   }
