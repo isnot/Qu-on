@@ -1,13 +1,7 @@
 const { MPD_Client } = require('./mpd_client.js');
 const { TelegramBot_poll } = require('./telegram_bot_poll.js');
-const util = require('util');
 // const mpris = require('node-mpris');
 // const msheet = require('./mandala_sheet_service/');
-
-function debug(value) {
-  console.log(util.inspect(value, { showHidden: false, depth: 1, colorize: true }));
-}
-const hasProperty = Object.prototype.hasOwnProperty;
 
 class BotManager {
   constructor(config) {
@@ -51,6 +45,7 @@ class BotManager {
   async timer(callback = () => {}) {
     console.log('[Qu-on] wakeup...' + new Date());
     if (this.in_process && this.iv === 0) {
+      // eslint-disable-next-line no-constant-condition
       while (true) {
         this.iv += 1;
         // 本処理と sleep を同時実行して最低間隔を確保する
