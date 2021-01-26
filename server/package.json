@@ -7,8 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
+    "eslint-plugin-import": "^2.22.1",
     "mpris": "git+https://github.com/JumpLink/node-mpris.git",
-    "request": "^2.87.0",
     "telegram-bot-api": "^2.0.1",
     "tm-node-mpd": "^0.3.1"
   },
