@@ -25,7 +25,7 @@ class BotManager {
       await this.timer(func);
       // debugger;
     }
-    await this.end().catch(console.log);
+    await this.end();
   }
 
   async end() {
@@ -43,7 +43,6 @@ class BotManager {
   }
 
   async timer(callback = () => {}) {
-    console.log('[Qu-on] wakeup...' + new Date());
     if (this.in_process && this.iv === 0) {
       // eslint-disable-next-line no-constant-condition
       while (true) {

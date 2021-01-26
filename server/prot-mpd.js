@@ -3,6 +3,7 @@
 const { BotManager } = require('./manager.js');
 const config = require('./settings.json');
 
+console.log('%s [Qu-on] wakeup...', new Date());
 (async () => {
   const bot = new BotManager(config);
 
