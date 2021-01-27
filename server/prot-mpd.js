@@ -1,15 +1,13 @@
 'use strict';
 
 const { BotManager } = require('./manager.js');
-const config = require('./settings.json');
+const config = require('../settings.json');
 
-console.log('%s [Qu-on] wakeup...', new Date());
 (async () => {
   const bot = new BotManager(config);
-
+  console.log('%s [Qu-on] wakeup...', new Date());
   try {
-    // await bot.start().catch(console.log);
-    await bot.start(() => {});
+    await bot.start(() => {}); // .catch(console.log);
   } catch (e) {
     console.log('DEBUG toplevel', e);
   }

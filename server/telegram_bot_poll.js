@@ -16,9 +16,9 @@ class TelegramBot_poll {
 
   async setup() {
     this.tg.setMessageProvider(new telegram.GetUpdateMessageProvider());
-
     this.tg.on('update', (update) => {
       console.log('DEBUG %o', update);
+      // const callback_query = '';
       const chat_id = update.message.chat.id;
       this.reply_chat_id = chat_id;
       this.sendMessage('DEBUG Message: ' + update.message.text, { chat_id: chat_id });
