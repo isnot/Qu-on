@@ -1,5 +1,6 @@
 const { MPD_Client } = require('./mpd_client.js');
 const { TelegramBot_poll } = require('./telegram_bot_poll.js');
+const u = require('./utility.js');
 // const mpris = require('node-mpris');
 // const msheet = require('./mandala_sheet_service/');
 
@@ -37,18 +38,13 @@ class BotManager {
     this.in_process = false;
   }
 
-  async sleep(sec = 1) {
-    const milsec = sec * 1000;
-    await new Promise((resolve) => setTimeout(resolve, milsec));
-  }
-
   async timer(callback = () => {}) {
     if (this.in_process && this.iv === 0) {
       // eslint-disable-next-line no-constant-condition
       while (true) {
         this.iv += 1;
         // 本処理と sleep を同時実行して最低間隔を確保する
-        await Promise.all([callback(), this.sleep(this.config.process_interval_sec)]);
+        await Promise.all([callback(), u.wait_sec(this.config.process_interval_sec)]);
       }
     }
     // throw new Error('Not suported action');

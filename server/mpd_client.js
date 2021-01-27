@@ -1,4 +1,5 @@
 const MPD = require('tm-node-mpd');
+const u = require('./utility.js');
 
 class MPD_Client {
   constructor(config) {
@@ -41,9 +42,13 @@ class MPD_Client {
     this.mpd = undefined;
   }
 
-  async wait_sec(sec = 1) {
-    const milsec = sec * 1000;
-    await new Promise((resolve) => setTimeout(resolve, milsec));
+  parseSong(song) {
+    const artist = u.safeRetrieve(song, 'Artist', '');
+    const title = u.safeRetrieve(song, 'Title', '');
+    const file = u.safeRetrieve(song, 'file', '');
+    const id = u.safeRetrieve(song, 'Id', '');
+    const elapsed = u.safeRetrieve(song, 'elapsed', '');
+    return `[${id}] ${u.formatSeconds(elapsed)}\n👤${artist} 🎵${title}\n💿${file}`;
   }
 
   async chat_crossfade(arg = { params: [] }) {
@@ -58,15 +63,15 @@ class MPD_Client {
   async chat_fadeout(sec = 14) {
     const period = sec / 7;
     await this.mpd.volume(90);
-    await this.wait_sec(period * 2);
+    await u.wait_sec(period * 2);
     await this.mpd.volume(80);
-    await this.wait_sec(period * 2);
+    await u.wait_sec(period * 2);
     await this.mpd.volume(70);
-    await this.wait_sec(period);
+    await u.wait_sec(period);
     await this.mpd.volume(50);
-    await this.wait_sec(period);
+    await u.wait_sec(period);
     await this.mpd.volume(20);
-    await this.wait_sec(period);
+    await u.wait_sec(period);
     await this.mpd.pause();
     await this.mpd.volume(100);
   }
@@ -76,10 +81,10 @@ class MPD_Client {
     await this.mpd.updateStatus();
     const remains = this.mpd.status.duration - this.mpd.status.elapsed;
     console.log(`[Qu-on] going to stop in ${remains} sec`);
-    const procedure = [await this.chat.sendMessage(`⛔going to stop in ${this.formatSeconds(remains)}`)];
+    const procedure = [await this.chat.sendMessage(`⛔going to stop in ${u.formatSeconds(remains)}`)];
     procedure.push(
       (async () => {
-        await this.wait_sec(remains - 14);
+        await u.wait_sec(remains - 14);
         await this.chat_fadeout();
       })()
     );
@@ -95,7 +100,7 @@ class MPD_Client {
     if (Number.isSafeInteger(min)) {
       console.log(`[Qu-on] going to stop in ${min} min`);
       await this.chat.sendMessage(`⏰timer set ${min}+ min`);
-      await this.wait_sec(min * 60);
+      await u.wait_sec(min * 60);
       await this.chat_stop_on_now_playing();
     }
   }
@@ -112,7 +117,7 @@ class MPD_Client {
       } else {
         console.log(`[Qu-on] going to stop in ${min} min`);
         await this.chat.sendMessage(`⛔going to stop in ${min} min`);
-        await this.wait_sec(min * 60);
+        await u.wait_sec(min * 60);
         await this.chat_fadeout();
       }
     }
@@ -137,58 +142,6 @@ class MPD_Client {
       },
     });
   }
-
-  parseSong(song) {
-    const artist = this.safeRetrieve(song, 'Artist', '');
-    const title = this.safeRetrieve(song, 'Title', '');
-    const file = this.safeRetrieve(song, 'file', '');
-    const id = this.safeRetrieve(song, 'Id', '');
-    const elapsed = this.safeRetrieve(song, 'elapsed', '');
-    return `[${id}] ${this.formatSeconds(elapsed)}\n👤${artist} 🎵${title}\n💿${file}`;
-  }
-
-  safeRetrieve(target, pos, alternate) {
-    try {
-      const value = this.deepRetrieve(target, pos);
-      return typeof value === 'string' ? value : alternate;
-    } catch (e) {
-      return alternate;
-    }
-  }
-
-  deepRetrieve(target, pos) {
-    let cur = target;
-    if (typeof pos !== 'string' || typeof target !== 'object' || target === null) {
-      return undefined;
-    }
-    try {
-      pos.split('.').forEach((el) => {
-        if (this.hasProperty(cur, el)) {
-          cur = cur[el];
-        } else {
-          throw new Error('deepRetrieve: element not found');
-        }
-      });
-    } catch (e) {
-      return undefined;
-    }
-    return cur;
-  }
-
-  // const hasProperty = Object.prototype.hasOwnProperty;
-  hasProperty(obj, prop) {
-    return Object.prototype.hasOwnProperty.call(obj, prop);
-  }
-
-  formatSeconds(sec = 0) {
-    const min = Math.trunc(sec / 60);
-    const sec_f = Number.parseFloat(sec % 60).toFixed(2);
-    const s_sec = Number(sec_f) < 10 ? `0${sec_f}` : String(sec_f);
-    return `${min}:${s_sec}`;
-  }
-
-  // const util = require('util');
-  // util.inspect(value, { showHidden: false, depth: 1, colorize: true });
 }
 
 module.exports = {

@@ -6,15 +6,6 @@ class Utils {
     await new Promise((resolve) => setTimeout(resolve, milsec));
   }
 
-  parseSong(song = {}) {
-    const artist = this.safeRetrieve(song, 'Artist', '');
-    const title = this.safeRetrieve(song, 'Title', '');
-    const file = this.safeRetrieve(song, 'file', '');
-    const id = this.safeRetrieve(song, 'Id', '');
-    const elapsed = this.safeRetrieve(song, 'elapsed', '');
-    return `[${id}] ${this.formatSeconds(elapsed)}\n👤${artist} 🎵${title}\n💿${file}`;
-  }
-
   safeRetrieve(target, pos, alternate) {
     try {
       const value = this.deepRetrieve(target, pos);
