@@ -1,16 +1,17 @@
 {
   "name": "Qu-on",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "control music player via chat.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "eslint": "eslint server/*.js",
+    "eslint-fix": "eslint --fix server/*.js"
   },
   "dependencies": {
-    "eslint-plugin-import": "^2.22.1",
     "mpris": "git+https://github.com/JumpLink/node-mpris.git",
     "telegram-bot-api": "^2.0.1",
-    "tm-node-mpd": "^0.3.1"
+    "tm-node-mpd": "git+https://github.com/isnot/tm-node-mpd.git#isnot"
   },
   "author": "isnot",
   "license": "MIT",
@@ -19,6 +20,7 @@
     "eslint-config-airbnb-base": "^14.2.1",
     "eslint-config-prettier": "^7.2.0",
     "eslint-plugin-prettier": "^3.3.1",
+    "eslint-plugin-import": "^2.22.1",
     "prettier": "^2.2.1"
   }
 }
