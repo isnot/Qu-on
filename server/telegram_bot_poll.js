@@ -7,6 +7,33 @@ class TelegramBot_poll {
     this.tg = new telegram({ token: config.bot_api_key });
     this.player = undefined;
     this.reply_chat_id = undefined;
+    this.last_message_id = undefined;
+  }
+
+  async setup() {
+    this.tg.setMessageProvider(new telegram.GetUpdateMessageProvider());
+    this.tg.on('update', async (update) => {
+      // console.log('DEBUG tg', update);
+      const command = this.parseMessage(update);
+      console.log('DEBUG tg command', command.name);
+
+      this.reply_chat_id = command.chat_id;
+      // this.sendMessage(`DEBUG Message: ${command.message_text}`);
+
+      if (Utils.hasProperty(command, 'callback_query_id')) {
+        await this.answerCallbackQuery(command.callback_query_id).catch(console.log);
+      }
+
+      if (typeof this.player[command.name] === 'function') {
+        try {
+          await this.player[command.name].call(this.player, command);
+        } catch (e) {
+          console.log('PLAYER ERROR %o', e);
+        }
+      } else {
+        console.log(`DEBUG notexists ${command.name}`);
+      }
+    });
   }
 
   async prepare(player) {
@@ -15,33 +42,33 @@ class TelegramBot_poll {
     console.log('%s [Qu-on] Tg GetUpdateMessageProvider is started', new Date());
   }
 
-  async setup() {
-    this.tg.setMessageProvider(new telegram.GetUpdateMessageProvider());
-    this.tg.on('update', (update) => {
-      console.log('DEBUG %o', update);
-      // const callback_query = '';
-      const chat_id = update.message.chat.id;
-      this.reply_chat_id = chat_id;
-      this.sendMessage('DEBUG Message: ' + update.message.text, { chat_id: chat_id });
-      const command = this.parseMessage(update.message);
-      console.log('DEBUG tg command:=', command);
-      if (typeof this.player[command.name] === 'function') {
-        this.player[command.name].call(this.player, command);
-      } else {
-        console.log(`DEBUG notexists ${command.name}`);
-      }
-    });
-  }
-
   async destory() {
     console.log('%s [Qu-on] TG will be stopped...', new Date());
     this.tg.stop();
     this.tg = undefined;
+    delete this.tg;
   }
 
-  parseMessage(message) {
+  parseMessage(incomming) {
     const command = {};
-    const params = message.text.split(' ');
+    const callback_query = Utils.deepRetrieve(incomming, 'callback_query');
+    const i_message = Utils.deepRetrieve(incomming, 'message');
+    const message = callback_query ? callback_query.message : i_message;
+
+    if (callback_query) {
+      command.message_text = callback_query.data;
+      command.from = callback_query.from;
+      command.callback_query_id = callback_query.id;
+      command.chat_instance = callback_query.chat_instance;
+    }
+    if (i_message) {
+      command.message_text = message.text;
+      command.from = message.from;
+    }
+    command.chat_id = message.chat.id;
+    command.message_id = message.message_id;
+
+    const params = command.message_text.split(' ');
     command.name = 'chat_' + params.shift();
     command.params = params;
     return command;
@@ -53,24 +80,40 @@ class TelegramBot_poll {
       : this.config.chat_id;
     const data = {
       chat_id: fallback_chat_id,
-      text: text,
+      text: Utils.replaceCharactorEntity4TgHtml(text),
       disable_web_page_preview: this.config.disable_web_page_preview,
       parse_mode: this.config.parse_mode,
       ...options,
     };
-    console.log('DEBUG', data);
+    // console.log('DEBUG', data);
     const response = await this.tg.sendMessage(data);
     console.log('[Qu-on] sendMessage response: %o', response);
+    this.last_message_id = Utils.deepRetrieve(response, 'message_id');
+  }
+
+  stopReply() {
+    this.last_message_id = undefined;
+  }
+
+  async updateMessage(text = '', reply_markup) {
+    console.log('DEBUG updateMes c%s m%s %s', this.reply_chat_id, this.last_message_id, text);
+    if (Number.isSafeInteger(this.reply_chat_id) && Number.isSafeInteger(this.last_message_id)) {
+      return await this.updateMessageHTML(
+        this.reply_chat_id,
+        this.last_message_id,
+        Utils.replaceCharactorEntity4TgHtml(text),
+        reply_markup
+      );
+    }
   }
 
   async updateMessageHTML(chat_id, message_id, text = '', reply_markup) {
-    const config = this.config;
     const data = {
-      chat_id: chat_id || config.chat_id,
+      chat_id: chat_id || this.config.chat_id,
       message_id: message_id,
       text: text,
-      disable_web_page_preview: config.disable_web_page_preview,
-      parse_mode: config.parse_mode,
+      disable_web_page_preview: this.config.disable_web_page_preview,
+      parse_mode: this.config.parse_mode,
     };
     if (!text || text === '') {
       throw new Error('updateMessageHTML: need text');
@@ -83,18 +126,13 @@ class TelegramBot_poll {
     } else if (typeof reply_markup === 'object' && reply_markup !== null) {
       data.reply_markup = JSON.stringify(reply_markup);
     }
-    return this.tg.editMessageText(data);
+    const response = await this.tg.editMessageText(data);
+    console.log('[Qu-on] editMessageText response: %o', response);
   }
 
-  async answerCallbackQuery(callback_query_id, options = {}) {
-    const data = {
-      callback_query_id: callback_query_id,
-      cache_time: 0,
-      show_alert: true,
-      text: 'acepted!',
-      ...options,
-    };
-    return await this.tg.answerCallbackQuery(data);
+  async answerCallbackQuery(callback_query_id = 0) {
+    console.debug('NO answerCQ', callback_query_id);
+    // return await this.tg.answerCallbackQuery(callback_query_id);
   }
 }
 

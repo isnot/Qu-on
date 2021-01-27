@@ -1,7 +1,26 @@
 const util = require('util');
 
 class Utils {
+  constructor() {
+    this.timer_id = undefined;
+  }
+
+  clearTimer() {
+    if (this.timer_id) {
+      clearTimeout(this.timer_id);
+      this.timer_id = undefined;
+    }
+  }
+
   async wait_sec(sec = 1) {
+    const milsec = sec * 1000;
+    this.clearTimer();
+    await new Promise((resolve) => {
+      this.timer_id = setTimeout(resolve, milsec);
+    });
+  }
+
+  async simple_wait_sec(sec = 1) {
     const milsec = sec * 1000;
     await new Promise((resolve) => setTimeout(resolve, milsec));
   }
