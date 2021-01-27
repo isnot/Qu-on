@@ -1,4 +1,5 @@
-server/settings.json
+settings.json
+package-lock.json
 
 # Logs
 logs
