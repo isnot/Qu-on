@@ -1,5 +1,5 @@
 const MPD = require('tm-node-mpd');
-const u = require('./utility.js');
+const Utils = require('./utility.js');
 
 class MPD_Client {
   constructor(config) {
@@ -37,18 +37,18 @@ class MPD_Client {
   }
 
   async destory() {
-    console.log('%S [Qu-on] MPD will be stopped...', new Date());
+    console.log('%s [Qu-on] MPD will be stopped...', new Date());
     this.mpd.disconnect();
     this.mpd = undefined;
   }
 
   parseSong(song) {
-    const artist = u.safeRetrieve(song, 'Artist', '');
-    const title = u.safeRetrieve(song, 'Title', '');
-    const file = u.safeRetrieve(song, 'file', '');
-    const id = u.safeRetrieve(song, 'Id', '');
-    const elapsed = u.safeRetrieve(song, 'elapsed', '');
-    return `[${id}] ${u.formatSeconds(elapsed)}\n👤${artist} 🎵${title}\n💿${file}`;
+    const artist = Utils.safeRetrieve(song, 'Artist', '');
+    const title = Utils.safeRetrieve(song, 'Title', '');
+    const file = Utils.safeRetrieve(song, 'file', '');
+    const id = Utils.safeRetrieve(song, 'Id', '');
+    const elapsed = Utils.safeRetrieve(song, 'elapsed', '');
+    return `[${id}] ${Utils.formatSeconds(elapsed)}\n👤${artist} 🎵${title}\n💿${file}`;
   }
 
   async chat_crossfade(arg = { params: [] }) {
@@ -63,15 +63,15 @@ class MPD_Client {
   async chat_fadeout(sec = 14) {
     const period = sec / 7;
     await this.mpd.volume(90);
-    await u.wait_sec(period * 2);
+    await Utils.wait_sec(period * 2);
     await this.mpd.volume(80);
-    await u.wait_sec(period * 2);
+    await Utils.wait_sec(period * 2);
     await this.mpd.volume(70);
-    await u.wait_sec(period);
+    await Utils.wait_sec(period);
     await this.mpd.volume(50);
-    await u.wait_sec(period);
+    await Utils.wait_sec(period);
     await this.mpd.volume(20);
-    await u.wait_sec(period);
+    await Utils.wait_sec(period);
     await this.mpd.pause();
     await this.mpd.volume(100);
   }
@@ -81,10 +81,10 @@ class MPD_Client {
     await this.mpd.updateStatus();
     const remains = this.mpd.status.duration - this.mpd.status.elapsed;
     console.log(`[Qu-on] going to stop in ${remains} sec`);
-    const procedure = [await this.chat.sendMessage(`⛔going to stop in ${u.formatSeconds(remains)}`)];
+    const procedure = [await this.chat.sendMessage(`⛔going to stop in ${Utils.formatSeconds(remains)}`)];
     procedure.push(
       (async () => {
-        await u.wait_sec(remains - 14);
+        await Utils.wait_sec(remains - 14);
         await this.chat_fadeout();
       })()
     );
@@ -100,7 +100,7 @@ class MPD_Client {
     if (Number.isSafeInteger(min)) {
       console.log(`[Qu-on] going to stop in ${min} min`);
       await this.chat.sendMessage(`⏰timer set ${min}+ min`);
-      await u.wait_sec(min * 60);
+      await Utils.wait_sec(min * 60);
       await this.chat_stop_on_now_playing();
     }
   }
@@ -117,7 +117,7 @@ class MPD_Client {
       } else {
         console.log(`[Qu-on] going to stop in ${min} min`);
         await this.chat.sendMessage(`⛔going to stop in ${min} min`);
-        await u.wait_sec(min * 60);
+        await Utils.wait_sec(min * 60);
         await this.chat_fadeout();
       }
     }

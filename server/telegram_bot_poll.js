@@ -1,5 +1,5 @@
 const telegram = require('telegram-bot-api');
-const u = require('./utility.js');
+const Utils = require('./utility.js');
 
 class TelegramBot_poll {
   constructor(config) {

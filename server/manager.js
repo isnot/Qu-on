@@ -1,6 +1,6 @@
 const { MPD_Client } = require('./mpd_client.js');
 const { TelegramBot_poll } = require('./telegram_bot_poll.js');
-const u = require('./utility.js');
+const Utils = require('./utility.js');
 // const mpris = require('node-mpris');
 // const msheet = require('./mandala_sheet_service/');
 
@@ -44,7 +44,7 @@ class BotManager {
       while (true) {
         this.iv += 1;
         // 本処理と sleep を同時実行して最低間隔を確保する
-        await Promise.all([callback(), u.wait_sec(this.config.process_interval_sec)]);
+        await Promise.all([callback(), Utils.wait_sec(this.config.process_interval_sec)]);
       }
     }
     // throw new Error('Not suported action');
