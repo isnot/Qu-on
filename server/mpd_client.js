@@ -59,9 +59,9 @@ class MPD_Client {
 
   async wait_and_fadeout(sec) {
     this.stop_at = Date.now() + sec * 1000;
-    console.log('DEBUG timer start [%o] => %s sec', Utils.timer_id, sec);
+    console.log('DEBUG timer start %s sec', sec);
     await Utils.wait_sec(sec);
-    console.log('DEBUG timer end [%o] => %s sec', Utils.timer_id, sec);
+    console.log('DEBUG timer end %s sec', sec);
     await this.chat_fadeout();
     this.stop_at = Date.now();
   }

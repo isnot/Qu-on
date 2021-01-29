@@ -1,5 +1,5 @@
+const { TelegramBot_poll } = require('./telegram_bot_poll_tm.js');
 const { MPD_Client } = require('./mpd_client.js');
-const { TelegramBot_poll } = require('./telegram_bot_poll.js');
 const Utils = require('./utility.js');
 // const mpris = require('node-mpris');
 // const msheet = require('./mandala_sheet_service/');
