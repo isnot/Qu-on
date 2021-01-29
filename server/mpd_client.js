@@ -28,7 +28,7 @@ class MPD_Client {
   }
 
   async prepare(chat) {
-    this.chat = chat;
+    this.chat = chat; // TODO
     await this.mpd.connect();
     console.log('%s [Qu-on] MPD Client is connected', new Date());
   }

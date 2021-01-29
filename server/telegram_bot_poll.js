@@ -24,20 +24,12 @@ class TelegramBot_poll {
         await this.answerCallbackQuery(command.callback_query_id).catch(console.log);
       }
 
-      if (typeof this.player[command.name] === 'function') {
-        try {
-          await this.player[command.name].call(this.player, command);
-        } catch (e) {
-          console.log('PLAYER ERROR %o', e);
-        }
-      } else {
-        console.log(`DEBUG notexists ${command.name}`);
-      }
+      this.player_command(command);
     });
   }
 
   async prepare(player) {
-    this.player = player;
+    this.player = player; // TODO
     await this.tg.start();
     console.log('%s [Qu-on] Tg GetUpdateMessageProvider is started', new Date());
   }
@@ -47,6 +39,19 @@ class TelegramBot_poll {
     this.tg.stop();
     this.tg = undefined;
     delete this.tg;
+  }
+
+  async player_command(command = {}) {
+    const player = this.player; // TODO
+    if (typeof player[command.name] === 'function') {
+      try {
+        await player[command.name].call(player, command);
+      } catch (e) {
+        console.log('PLAYER ERROR %o', e);
+      }
+    } else {
+      console.log(`DEBUG notexists ${command.name}`);
+    }
   }
 
   parseMessage(incomming) {
