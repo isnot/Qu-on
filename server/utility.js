@@ -12,9 +12,9 @@ class Utils {
     }
   }
 
-  async wait_sec(sec = 1) {
+  wait_sec(sec = 1) {
     this.clearTimer();
-    await new Promise((resolve) => {
+    return new Promise((resolve) => {
       this.timer_id = setTimeout(resolve, sec * 1000);
     });
   }

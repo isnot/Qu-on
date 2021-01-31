@@ -116,7 +116,7 @@ class TelegramBot {
   }
 
   async updateMessage(text = '', reply_markup) {
-    console.log('DEBUG updateMes c%s m%s %s', this.reply_chat_id, this.last_message_id, text);
+    console.debug('DEBUG updateMes c%s m%s %s', this.reply_chat_id, this.last_message_id, text);
     if (Number.isSafeInteger(this.reply_chat_id) && Number.isSafeInteger(this.last_message_id)) {
       return await this.updateMessageHTML(
         this.reply_chat_id,
@@ -125,6 +125,7 @@ class TelegramBot {
         reply_markup
       );
     }
+    throw new Error('updateMessage: missing chat_id or message_id.');
   }
 
   async updateMessageHTML(chat_id, message_id, text = '', reply_markup) {
@@ -157,7 +158,6 @@ class TelegramBot {
       show_alert: Utils.safeRetrieve(this.config, 'show_alert', false),
     });
     console.log('[Qu-on] answerCallbackQuery response: %o', response);
-    // return await this.tg.answerCallbackQuery(callback_query_id);
   }
 }
 
