@@ -1,48 +1,63 @@
-const telegram = require('telegram-bot-api');
+// eslint-disable-next-line no-undef
+process.env['NTBA_FIX_319'] = 1;
+const Promise = require('bluebird');
+Promise.config({
+  cancellation: true,
+});
+const TelegramBot = require('node-telegram-bot-api');
 const Utils = require('./utility.js');
+const HOLDER = { player: undefined };
 
 class TelegramBot_poll {
   constructor(config) {
     this.config = { ...config };
-    this.tg = new telegram({ token: config.bot_api_key });
-    this.player = undefined;
+    this.tg = new TelegramBot(config.bot_api_key, {
+      polling: {
+        autoStart: false,
+      },
+    });
     this.reply_chat_id = undefined;
     this.last_message_id = undefined;
   }
 
+  getPlayer() {
+    return HOLDER.player;
+  }
+
   async setup() {
-    this.tg.setMessageProvider(new telegram.GetUpdateMessageProvider());
-    this.tg.on('update', async (update) => {
-      // console.log('DEBUG tg', update);
-      const command = this.parseMessage(update);
-      console.log('DEBUG tg command', command.name);
-
-      this.reply_chat_id = command.chat_id;
-      // this.sendMessage(`DEBUG Message: ${command.message_text}`);
-
-      if (Utils.hasProperty(command, 'callback_query_id')) {
-        await this.answerCallbackQuery(command.callback_query_id).catch(console.log);
-      }
-
-      this.player_command(command);
+    this.tg.on('message', async (message) => {
+      // console.log('DEBUG tgu', message);
+      const command_mes = this.parseMessage({ message });
+      console.log('DEBUG tg message command', command_mes);
+      this.reply_chat_id = command_mes.chat_id;
+      // this.sendMessage(`DEBUG Message: ${command_mes.message_text}`);
+      this.doPlayerCommand(command_mes);
+    });
+    this.tg.on('callback_query', async (callback_query) => {
+      // console.log('DEBUG tgc', callback_query);
+      const command_cbq = this.parseMessage({ callback_query });
+      console.log('DEBUG tg callback_query command', command_cbq);
+      this.reply_chat_id = command_cbq.chat_id;
+      await this.answerCallbackQuery(command_cbq).catch(console.log);
+      this.doPlayerCommand(command_cbq);
     });
   }
 
   async prepare(player) {
-    this.player = player; // TODO
-    await this.tg.start();
-    console.log('%s [Qu-on] Tg GetUpdateMessageProvider is started', new Date());
+    HOLDER.player = player;
+    console.log('%s [Qu-on] Tg startPolling', new Date());
+    await this.tg.startPolling();
   }
 
   async destory() {
     console.log('%s [Qu-on] TG will be stopped...', new Date());
-    this.tg.stop();
+    await this.tg.stopPolling();
     this.tg = undefined;
     delete this.tg;
   }
 
-  async player_command(command = {}) {
-    const player = this.player; // TODO
+  async doPlayerCommand(command = {}) {
+    const player = this.getPlayer();
     if (typeof player[command.name] === 'function') {
       try {
         await player[command.name].call(player, command);
@@ -50,7 +65,7 @@ class TelegramBot_poll {
         console.log('PLAYER ERROR %o', e);
       }
     } else {
-      console.log(`DEBUG notexists ${command.name}`);
+      console.debug(`DEBUG notexists ${command.name}`);
     }
   }
 
@@ -59,7 +74,6 @@ class TelegramBot_poll {
     const callback_query = Utils.deepRetrieve(incomming, 'callback_query');
     const i_message = Utils.deepRetrieve(incomming, 'message');
     const message = callback_query ? callback_query.message : i_message;
-
     if (callback_query) {
       command.message_text = callback_query.data;
       command.from = callback_query.from;
@@ -76,6 +90,7 @@ class TelegramBot_poll {
     const params = command.message_text.split(' ');
     command.name = 'chat_' + params.shift();
     command.params = params;
+    // console.log('DEBUG pM', message, command);
     return command;
   }
 
@@ -91,7 +106,7 @@ class TelegramBot_poll {
       ...options,
     };
     // console.log('DEBUG', data);
-    const response = await this.tg.sendMessage(data);
+    const response = await this.tg.sendMessage(data.chat_id, data.text, data);
     console.log('[Qu-on] sendMessage response: %o', response);
     this.last_message_id = Utils.deepRetrieve(response, 'message_id');
   }
@@ -131,12 +146,17 @@ class TelegramBot_poll {
     } else if (typeof reply_markup === 'object' && reply_markup !== null) {
       data.reply_markup = JSON.stringify(reply_markup);
     }
-    const response = await this.tg.editMessageText(data);
+    const response = await this.tg.editMessageText(data.text, data);
     console.log('[Qu-on] editMessageText response: %o', response);
   }
 
-  async answerCallbackQuery(callback_query_id = 0) {
-    console.debug('NO answerCQ', callback_query_id);
+  async answerCallbackQuery(command = {}) {
+    // console.debug('answerCQ', command);
+    const response = await this.tg.answerCallbackQuery(command.callback_query_id, {
+      text: `OK ${command.from.username}, ${command.message_text} ${command.params.join('|')}`,
+      show_alert: Utils.safeRetrieve(this.config, 'show_alert', false),
+    });
+    console.log('[Qu-on] answerCallbackQuery response: %o', response);
     // return await this.tg.answerCallbackQuery(callback_query_id);
   }
 }

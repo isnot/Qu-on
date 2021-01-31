@@ -1,14 +1,18 @@
 const MPD = require('tm-node-mpd');
 const Utils = require('./utility.js');
+const HOLDER = { chat: undefined };
 
 class MPD_Client {
   constructor(config) {
     this.config = { ...config };
     this.mpd = new MPD(config.mpd_connect);
-    this.chat = undefined;
     this.songId = 0;
     this.lastSongId = 0;
-    this.stop_at = 0;
+    this.stopAt = 0;
+  }
+
+  getChat() {
+    return HOLDER.chat;
   }
 
   async setup() {
@@ -28,7 +32,7 @@ class MPD_Client {
   }
 
   async prepare(chat) {
-    this.chat = chat; // TODO
+    HOLDER.chat = chat;
     await this.mpd.connect();
     console.log('%s [Qu-on] MPD Client is connected', new Date());
   }
@@ -66,12 +70,39 @@ class MPD_Client {
   }
 
   async wait_and_fadeout(sec) {
-    this.stop_at = Date.now() + sec * 1000;
+    this.stopAt = Date.now() + sec * 1000;
     console.log('DEBUG timer start %s sec', sec);
     await Utils.wait_sec(sec);
     console.log('DEBUG timer end %s sec', sec);
-    await this.chat_fadeout();
-    this.stop_at = Date.now();
+    await this.fadeout();
+    this.stopAt = Date.now();
+  }
+
+  async fadeout(sec = 15) {
+    const [STEP1, STEP2, THRESHOLD, NUMS] = [4, 9, 40, 35];
+    if (!this.isPlaying()) {
+      return;
+    }
+    const period = sec / NUMS;
+    const ori_vol = Number(this.mpd.status.volume);
+    let vol = parseInt(ori_vol * 100, 10);
+    vol = vol > 100 ? 100 : vol;
+    console.time('DEBUG_fadeout');
+    while (vol > THRESHOLD) {
+      vol -= STEP1;
+      console.debug(`DEBUG fadeout vol${vol}`);
+      await Promise.all([await Utils.simple_wait_sec(period * 2), await this.mpd.volume(vol)]);
+      // console.timeLog('DEBUG_fadeout');
+    }
+    while (vol > 0) {
+      vol -= STEP2;
+      vol = vol < 0 ? 0 : vol;
+      console.debug(`DEBUG fadeout vol${vol}`);
+      await Promise.all([await Utils.simple_wait_sec(period), await this.mpd.volume(vol)]);
+    }
+    console.timeEnd('DEBUG_fadeout');
+    await this.mpd.pause(1); // no resume playback
+    await this.mpd.volume(100); // restore volume
   }
 
   async chat_set_crossfade(arg = { params: [] }) {
@@ -83,35 +114,22 @@ class MPD_Client {
   }
 
   // 即時、フェードアウトしながら停止する
-  async chat_fadeout(sec = 14) {
-    if (!this.isPlaying()) {
-      return;
-    }
-    const period = sec / 7;
-    await this.mpd.volume(90);
-    await Utils.simple_wait_sec(period * 2);
-    await this.mpd.volume(80);
-    await Utils.simple_wait_sec(period * 2);
-    await this.mpd.volume(70);
-    await Utils.simple_wait_sec(period);
-    await this.mpd.volume(50);
-    await Utils.simple_wait_sec(period);
-    await this.mpd.volume(20);
-    await Utils.simple_wait_sec(period);
-    await this.mpd.pause(1); // no resume playback
-    await this.mpd.volume(100);
+  async chat_fadeout(arg = { params: [] }) {
+    const sec = arg.params.length > 0 ? arg.params.shift() : 14;
+    await this.fadeout(sec);
   }
 
   // 今の曲の最後でフェードアウト
   async chat_stop_on_now_playing() {
+    const chat = this.getChat();
     await this.mpd.updateStatus();
     const remains = this.remainsSec();
     console.log(`[Qu-on] going to stop in ${remains} sec`);
     await Promise.all([
-      await this.chat.sendMessage(`⛔going to stop in ${Utils.formatSeconds(remains)}`),
+      await chat.sendMessage(`⛔going to stop in ${Utils.formatSeconds(remains)}`),
       await this.wait_and_fadeout(remains - 14),
     ]);
-    this.chat.stopReply();
+    chat.stopReply();
   }
 
   // 次の曲の最後でフェードアウト
@@ -119,11 +137,12 @@ class MPD_Client {
 
   // n分後、再生中の曲の最後でフェードアウト
   async chat_after_minute_and_stop_on_playing(arg = { params: [] }) {
+    const chat = this.getChat();
     const min = arg.params.length > 0 ? Number(arg.params.shift()) : 1;
     if (Number.isSafeInteger(min)) {
       console.log(`[Qu-on] going to stop in ${min} min`);
-      await this.chat.sendMessage(`⏰timer set ${min}+ min`);
-      this.chat.stopReply();
+      await chat.sendMessage(`⏰timer set ${min}+ min`);
+      chat.stopReply();
       await Utils.wait_sec(min * 60);
       await this.chat_stop_on_now_playing();
     }
@@ -131,6 +150,7 @@ class MPD_Client {
 
   // 今の曲の最後、もしくはn分後のいずれか早い方でフェードアウト
   async chat_stop_on_now_playing_or_minute(arg = { params: [] }) {
+    const chat = this.getChat();
     const min = arg.params.length > 0 ? Number(arg.params.shift()) : 1;
     if (Number.isSafeInteger(min)) {
       const waitsec = min * 60;
@@ -140,8 +160,8 @@ class MPD_Client {
         await this.chat_stop_on_now_playing();
       } else {
         console.log(`[Qu-on] going to stop in ${min} min`);
-        await this.chat.sendMessage(`⛔going to stop in ${min} min`);
-        this.chat.stopReply();
+        await chat.sendMessage(`⛔going to stop in ${min} min`);
+        chat.stopReply();
         await this.wait_and_fadeout(min * 60);
       }
     }
@@ -151,6 +171,7 @@ class MPD_Client {
     if (!this.isPlaying()) {
       return;
     }
+    const chat = this.getChat();
     const now = await this.currentSong();
     console.log('DEBUG', now, this.mpd.status.elapsed);
 
@@ -158,15 +179,15 @@ class MPD_Client {
     const nowplaying = this.formatSong({ ...this.mpd.status, ...now });
     console.log('[Qu-on] now playing', nowplaying);
 
-    const dt = new Date(this.stop_at).toLocaleTimeString();
-    const will_stop_at = this.stop_at > Date.now() ? `⏲${dt}\n` : '';
+    const dt = new Date(this.stopAt).toLocaleTimeString();
+    const will_stop_at = this.stopAt > Date.now() ? `⏲${dt}\n` : '';
     const message = `${will_stop_at}▶${nowplaying}`;
     if (this.lastSongId === Number(now.Id)) {
       if (this.isPlaying()) {
-        await this.chat.updateMessage(message);
+        await chat.updateMessage(message);
       }
     } else {
-      await this.chat.sendMessage(message);
+      await chat.sendMessage(message);
       this.lastSongId = Number(now.Id);
     }
   }
@@ -184,18 +205,19 @@ class MPD_Client {
   }
 
   async chat_clear_timer() {
-    this.stop_at = 0;
+    this.stopAt = 0;
     Utils.clearTimer();
-    this.chat.stopReply();
+    this.getChat().stopReply();
   }
 
   async chat_key() {
-    await this.chat.sendMessage('?', {
+    const chat = this.getChat();
+    await chat.sendMessage('?', {
       reply_markup: {
         inline_keyboard: this.config.user_keybord,
       },
     });
-    this.chat.stopReply();
+    chat.stopReply();
   }
 }
 

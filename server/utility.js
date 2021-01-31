@@ -20,9 +20,8 @@ class Utils {
     });
   }
 
-  async simple_wait_sec(sec = 1) {
-    const milsec = sec * 1000;
-    await new Promise((resolve) => setTimeout(resolve, milsec));
+  simple_wait_sec(sec = 1) {
+    return new Promise((resolve) => setTimeout(resolve, sec * 1000));
   }
 
   safeRetrieve(target, pos, alternate = '') {
