@@ -13,10 +13,9 @@ class Utils {
   }
 
   async wait_sec(sec = 1) {
-    const milsec = sec * 1000;
     this.clearTimer();
     await new Promise((resolve) => {
-      this.timer_id = setTimeout(resolve, milsec);
+      this.timer_id = setTimeout(resolve, sec * 1000);
     });
   }
 
@@ -24,7 +23,7 @@ class Utils {
     return new Promise((resolve) => setTimeout(resolve, sec * 1000));
   }
 
-  safeRetrieve(target, pos, alternate = '') {
+  safeRetrieve(target, pos, alternate) {
     try {
       const value = this.deepRetrieve(target, pos);
       return typeof value === typeof alternate ? value : alternate;
@@ -82,24 +81,6 @@ class Utils {
         func(key, target[key]);
       });
     }
-  }
-
-  radians(dig) {
-    return (dig * Math.PI) / 180;
-  }
-
-  // usage) range = distance({lat: x1, lng: y1}, {lat: x2, lng: y2});
-  distance(here, there) {
-    // eslint-disable-next-line no-unused-expressions
-    return (
-      6366.78 *
-      Math.acos(
-        Math.sin(this.radians(there.lat)) * Math.sin(this.radians(here.lat)) +
-          Math.cos(this.radians(there.lat)) *
-            Math.cos(this.radians(here.lat)) *
-            Math.cos(this.radians(Math.abs(here.lng - there.lng)))
-      )
-    );
   }
 
   getNextKeyOf(obj, key) {
