@@ -9,6 +9,7 @@ class MPD_Client {
     this.songId = 0;
     this.lastSongId = 0;
     this.stopAt = 0;
+    this.songData = {}; // { songId: { key: value, ... }, ... }
   }
 
   getChat() {
@@ -45,20 +46,29 @@ class MPD_Client {
   }
 
   formatSong(song) {
-    const artist = Utils.safeRetrieve(song, 'Artist', '');
-    const title = Utils.safeRetrieve(song, 'Title', '');
     const file = Utils.safeRetrieve(song, 'file', '');
     const id = Utils.safeRetrieve(song, 'Id', '');
-    const elapsed = Utils.safeRetrieve(song, 'elapsed', '');
-    return `[${id}] ${Utils.formatSeconds(elapsed)}\n👤${artist} 🎵${title}\n💿${file}`;
-  }
-
-  isPlaying() {
-    return this.mpd.status.state === 'play' && Number(this.mpd.status.songid) > 0;
+    const artist = Utils.safeRetrieve(song, 'Artist', '');
+    const title = Utils.safeRetrieve(song, 'Title', '') || Utils.safeRetrieve(song, 'Name', '');
+    const elapsed = Utils.formatSeconds(Utils.safeRetrieve(song, 'elapsed', ''));
+    const duration = Utils.formatSeconds(Utils.safeRetrieve(song, 'duration', ''));
+    const url = file.match(/^https?:\/\/(?:[^/]+)\//i);
+    const file_or_domain = Array.isArray(url) ? url[0] : file;
+    return `[${id}] ${elapsed}/${duration}\n👤${artist} 🎵${title}\n💿${file_or_domain}`;
   }
 
   remainsSec() {
     return this.mpd.status.duration - this.mpd.status.elapsed;
+  }
+
+  isPlaying() {
+    return this.mpd.status.state === 'play' && this.songId > 0;
+  }
+
+  isValidMessage(message = '') {
+    const last_song = Utils.safeRetrieve(this.songData, this.songId, {});
+    const last_message = Utils.safeRetrieve(last_song, 'lastMessage', '');
+    return message !== last_message;
   }
 
   async currentSong() {
@@ -83,6 +93,7 @@ class MPD_Client {
     if (!this.isPlaying()) {
       return;
     }
+    await this.mpd.command('single', 1); // playback is stopped after current song
     const period = sec / NUMS;
     const ori_vol = Number(this.mpd.status.volume);
     let vol = parseInt(ori_vol * 100, 10);
@@ -101,9 +112,13 @@ class MPD_Client {
       await Promise.all([await Utils.simple_wait_sec(period), await this.mpd.volume(vol)]);
     }
     console.timeEnd('DEBUG_fadeout');
-    await this.mpd.pause(1); // no resume playback
+    // await this.mpd.pause(1); // no resume playback
     await this.mpd.volume(100); // restore volume
   }
+
+  // ////////////////////////
+  // chat command: controlling options
+  // ////////////////////////
 
   async chat_set_crossfade(arg = { params: [] }) {
     const sec = arg.params.length > 0 ? arg.params.shift() : 1;
@@ -113,9 +128,13 @@ class MPD_Client {
     }
   }
 
+  // ////////////////////////
+  // chat command: controlling stop timer
+  // ////////////////////////
+
   // 即時、フェードアウトしながら停止する
   async chat_fadeout(arg = { params: [] }) {
-    const sec = arg.params.length > 0 ? arg.params.shift() : 14;
+    const sec = arg.params.length > 0 ? arg.params.shift() : 15;
     await this.fadeout(sec);
   }
 
@@ -127,7 +146,7 @@ class MPD_Client {
     console.log(`[Qu-on] going to stop in ${remains} sec`);
     await Promise.all([
       await chat.sendMessage(`⛔going to stop in ${Utils.formatSeconds(remains)}`),
-      await this.wait_and_fadeout(remains - 14),
+      await this.wait_and_fadeout(remains - 15),
     ]);
     chat.stopReply();
   }
@@ -144,7 +163,7 @@ class MPD_Client {
       await chat.sendMessage(`⏰timer set ${min}+ min`);
       chat.stopReply();
       await Utils.wait_sec(min * 60);
-      await this.chat_stop_on_now_playing();
+      await this.chat_stop_on_now_playing(arg);
     }
   }
 
@@ -157,7 +176,7 @@ class MPD_Client {
       await this.mpd.updateStatus();
       const remains = this.remainsSec();
       if (waitsec > remains) {
-        await this.chat_stop_on_now_playing();
+        await this.chat_stop_on_now_playing(arg);
       } else {
         console.log(`[Qu-on] going to stop in ${min} min`);
         await chat.sendMessage(`⛔going to stop in ${min} min`);
@@ -167,30 +186,74 @@ class MPD_Client {
     }
   }
 
-  async chat_now() {
+  async chat_clear_timer() {
+    this.stopAt = 0;
+    Utils.clearTimer();
+    this.getChat().stopReply();
+  }
+
+  // ////////////////////////
+  // chat command: show info
+  // ////////////////////////
+
+  async chat_now(arg = { message_id: 0, params: [] }) {
     if (!this.isPlaying()) {
       return;
     }
     const chat = this.getChat();
-    const now = await this.currentSong();
-    console.log('DEBUG', now, this.mpd.status.elapsed);
-
     await this.mpd.updateStatus();
-    const nowplaying = this.formatSong({ ...this.mpd.status, ...now });
-    console.log('[Qu-on] now playing', nowplaying);
+    const data = await this.currentSong();
+    data.elapsed = this.mpd.status.elapsed;
+    data.message_id = Number.isSafeInteger(arg.message_id) ? arg.message_id : 0;
+    const nowplaying = this.formatSong(data);
+    console.log('[Qu-on] now playing', nowplaying, data);
 
     const dt = new Date(this.stopAt).toLocaleTimeString();
     const will_stop_at = this.stopAt > Date.now() ? `⏲${dt}\n` : '';
     const message = `${will_stop_at}▶${nowplaying}`;
-    if (this.lastSongId === Number(now.Id)) {
-      if (this.isPlaying()) {
-        await chat.updateMessage(message);
-      }
+    data.lastMessage = message;
+
+    if (
+      data.message_id > 0 &&
+      this.lastSongId === Number(data.Id) &&
+      this.isPlaying() &&
+      this.isValidMessage(message)
+    ) {
+      await chat.updateMessage(message).catch(async () => {
+        await chat.sendMessage(message);
+      });
     } else {
       await chat.sendMessage(message);
-      this.lastSongId = Number(now.Id);
     }
+
+    this.lastSongId = Number(data.Id);
+    this.songData[this.songId] = data;
   }
+
+  async chat_status() {
+    const chat = this.getChat();
+    await this.mpd.updateStatus();
+    console.log('DEBUG status', this.mpd.status);
+    await chat.sendMessage(Utils.objToStr(this.mpd.status));
+  }
+
+  async chat_stats() {
+    const chat = this.getChat();
+    const stats = await this.mpd._sendCommand('stats');
+    console.log('DEBUG stats', stats);
+    await chat.sendMessage(stats);
+  }
+
+  async chat_next_song() {
+    const chat = this.getChat();
+    const info = await this.mpd._sendCommand('playlistid', this.mpd.status.nextsongid);
+    console.log('DEBUG next song', info);
+    await chat.sendMessage(info);
+  }
+
+  // ////////////////////////
+  // chat command: simple controlling playback
+  // ////////////////////////
 
   async chat_play() {
     await this.mpd.play();
@@ -204,11 +267,17 @@ class MPD_Client {
     await this.mpd.stop();
   }
 
-  async chat_clear_timer() {
-    this.stopAt = 0;
-    Utils.clearTimer();
-    this.getChat().stopReply();
+  async chat_next() {
+    await this.mpd.next();
   }
+
+  async chat_prev() {
+    await this.mpd.previous();
+  }
+
+  // ////////////////////////
+  // chat command: send inline keyboard
+  // ////////////////////////
 
   async chat_key() {
     const chat = this.getChat();
