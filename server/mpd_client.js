@@ -57,6 +57,14 @@ class MPD_Client {
     return this.mpd.status.duration - this.mpd.status.elapsed;
   }
 
+  async currentSong() {
+    try {
+      return await this.mpd.currentSong().catch(console.log);
+    } catch (e) {
+      throw new Error('currentSong is not suported.', e);
+    }
+  }
+
   async wait_and_fadeout(sec) {
     this.stop_at = Date.now() + sec * 1000;
     console.log('DEBUG timer start %s sec', sec);
@@ -143,7 +151,7 @@ class MPD_Client {
     if (!this.isPlaying()) {
       return;
     }
-    const now = await this.mpd.currentSong();
+    const now = await this.currentSong();
     console.log('DEBUG', now, this.mpd.status.elapsed);
 
     await this.mpd.updateStatus();

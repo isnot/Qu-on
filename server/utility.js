@@ -25,10 +25,10 @@ class Utils {
     await new Promise((resolve) => setTimeout(resolve, milsec));
   }
 
-  safeRetrieve(target, pos, alternate) {
+  safeRetrieve(target, pos, alternate = '') {
     try {
       const value = this.deepRetrieve(target, pos);
-      return typeof value === 'string' ? value : alternate;
+      return typeof value === typeof alternate ? value : alternate;
     } catch (e) {
       return alternate;
     }

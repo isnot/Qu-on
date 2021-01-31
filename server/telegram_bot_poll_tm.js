@@ -152,7 +152,7 @@ class TelegramBot_poll {
     // console.debug('answerCQ', command);
     const response = await this.tg.answerCallbackQuery(command.callback_query_id, {
       text: `OK ${command.from.username}, ${command.message_text} ${command.params.join('|')}`,
-      show_alert: true,
+      show_alert: Utils.safeRetrieve(this.config, 'show_alert', false),
     });
     console.log('[Qu-on] answerCallbackQuery response: %o', response);
     // return await this.tg.answerCallbackQuery(callback_query_id);
