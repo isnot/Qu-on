@@ -1,4 +1,4 @@
-const { TelegramBot_poll } = require('./telegram_bot_poll.js');
+const { TelegramBot } = require('./telegram_bot_poll.js');
 const { MPD_Client } = require('./mpd_client.js');
 const Utils = require('./utility.js');
 // const mpris = require('node-mpris');
@@ -18,7 +18,7 @@ class BotManager {
   async start(func) {
     this.in_process = true;
     this.mpd = new MPD_Client(this.config);
-    this.tg = new TelegramBot_poll(this.config);
+    this.tg = new TelegramBot(this.config);
     await Promise.all([await this.mpd.setup(), await this.tg.setup()]);
     await Promise.all([await this.mpd.prepare(this.tg), await this.tg.prepare(this.mpd)]);
 

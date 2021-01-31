@@ -4,14 +4,14 @@ const Promise = require('bluebird');
 Promise.config({
   cancellation: true,
 });
-const TelegramBot = require('node-telegram-bot-api');
+const TelegramBotApi = require('node-telegram-bot-api');
 const Utils = require('./utility.js');
 const HOLDER = { player: undefined };
 
-class TelegramBot_poll {
+class TelegramBot {
   constructor(config) {
     this.config = { ...config };
-    this.tg = new TelegramBot(config.bot_api_key, {
+    this.tg = new TelegramBotApi(config.bot_api_key, {
       polling: {
         autoStart: false,
       },
@@ -172,5 +172,5 @@ class TelegramBot_poll {
 // }
 
 module.exports = {
-  TelegramBot_poll,
+  TelegramBot,
 };
