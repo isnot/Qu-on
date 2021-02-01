@@ -31,7 +31,7 @@ class TelegramBot {
       console.log('DEBUG tg message command', command_mes);
       this.reply_chat_id = command_mes.chat_id;
       // this.sendMessage(`DEBUG Message: ${command_mes.message_text}`);
-      this.doPlayerCommand(command_mes);
+      await this.doPlayerCommand(command_mes);
     });
     this.tg.on('callback_query', async (callback_query) => {
       // console.log('DEBUG tgc', callback_query);
@@ -39,7 +39,7 @@ class TelegramBot {
       console.log('DEBUG tg callback_query command', command_cbq);
       this.reply_chat_id = command_cbq.chat_id;
       await this.answerCallbackQuery(command_cbq).catch(console.log);
-      this.doPlayerCommand(command_cbq);
+      await this.doPlayerCommand(command_cbq);
     });
   }
 
