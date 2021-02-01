@@ -6,6 +6,7 @@ class MPD_Client {
   constructor(config) {
     this.config = { ...config };
     this.mpd = new MPD(config.mpd_connect);
+    this.inProcess = false;
     this.songId = 0;
     this.lastSongId = 0;
     this.stopAt = 0;
@@ -21,16 +22,22 @@ class MPD_Client {
       console.log('%s [Qu-on] MPD ERROR %s', new Date(), String(e).substr(0, 90));
     });
     this.mpd.on('ready', async (status, server) => {
-      console.debug('DEBUG ready', server, status);
+      console.log('%s [Qu-on] MPD ready. %o %o', new Date(), server, status);
       if (Utils.hasProperty(status, 'error')) {
         this.getChat().sendMessage(`[Qu-on] MPD Ready. last error message: ${status.error}`);
       }
     });
     this.mpd.on('update', async (changed) => {
-      console.debug('DEBUG MPD Update:', changed);
+      console.log('%s [Qu-on] MPD Update:', new Date(), changed);
       if (changed === 'player') {
         this.songId = parseInt(this.mpd.status.songid, 10);
-        await this.chat_now();
+        if (this.inProcess) {
+          console.log('%s [Qu-on] MPD ignored duplicate update process.', new Date());
+        } else {
+          this.inProcess = true;
+          await this.chat_now();
+          this.inProcess = false;
+        }
       }
     });
   }
@@ -73,15 +80,16 @@ class MPD_Client {
     return state === 'play';
   }
 
-  isValidMessage(message = '') {
-    const last_song = this.findSongMeta(this.songId);
+  async isValidMessage(message = '') {
+    const last_song = await this.findSongMeta(this.songId);
     const last_message = Utils.safeRetrieve(last_song, 'lastMessage', '');
+    console.debug('DEBUG isVaM %o %s', last_song, last_message);
     return message !== last_message;
   }
 
   async findSongInfo(s_id = 0) {
-    const data = this.findSongMeta(s_id).catch((e) => {
-      throw new Error(`no data found for songId:${s_id} %o`, e);
+    const data = await this.findSongMeta(s_id).catch((e) => {
+      throw new Error(`no data found for songId:${s_id} ` + String(e));
     });
     return this.formatSong(data);
   }
@@ -93,7 +101,7 @@ class MPD_Client {
     const song_id = parseInt(s_id, 10);
     console.log('DEBUG fSM1 %s %o', song_id, this.songMetaDB);
     const song_c = Utils.safeRetrieve(this.songMetaDB, String(song_id), {});
-    console.log('DEBUG fSM2 %s %o', song_id, song_c);
+    // console.log('DEBUG fSM2 %s %o', song_id, song_c);
     if (Utils.hasProperty(song_c, 'file')) {
       return song_c;
     }
@@ -101,7 +109,7 @@ class MPD_Client {
       const song_m = await this.mpd.query('playlistid', song_id).catch((e) => {
         throw new Error('song data not found at query. %s %o', song_id, e);
       });
-      console.log('DEBUG fSM3 %s %o', song_id, song_m);
+      // console.log('DEBUG fSM3 %s %o', song_id, song_m);
       if (Utils.hasProperty(song_m, 'file')) {
         this.songMetaDB[song_id] = song_m;
         return song_m;
@@ -134,14 +142,14 @@ class MPD_Client {
     console.time('DEBUG_fadeout');
     while (vol > THRESHOLD) {
       vol -= STEP1;
-      console.debug(`DEBUG fadeout vol${vol}`);
+      // console.debug(`DEBUG fadeout vol${vol}`);
       await Promise.all([await Utils.simple_wait_sec(period * 2), await this.mpd.volume(vol)]);
       // console.timeLog('DEBUG_fadeout');
     }
     while (vol > 0) {
       vol -= STEP2;
       vol = vol < 0 ? 0 : vol;
-      console.debug(`DEBUG fadeout vol${vol}`);
+      // console.debug(`DEBUG fadeout vol${vol}`);
       await Promise.all([await Utils.simple_wait_sec(period), await this.mpd.volume(vol)]);
     }
     console.timeEnd('DEBUG_fadeout');
@@ -157,7 +165,7 @@ class MPD_Client {
   async chat_set_crossfade(arg = { params: [] }) {
     const sec = arg.params.length > 0 ? arg.params.shift() : 1;
     if (Number.isSafeInteger(sec)) {
-      console.log(`[Qu-on] set crossfade to ${sec} sec.`);
+      console.log(`%s [Qu-on] set crossfade to ${sec} sec.`, new Date());
       await this.mpd.crossfade(sec);
     }
   }
@@ -177,7 +185,7 @@ class MPD_Client {
     const chat = this.getChat();
     await this.mpd.updateStatus();
     const remains = this.remainsSec();
-    console.log(`[Qu-on] going to stop in ${remains} sec`);
+    console.log(`%s [Qu-on] going to stop in ${remains} sec`, new Date());
     await Promise.all([
       await chat.sendMessage(`⛔going to stop in ${Utils.formatSeconds(remains)}`),
       await this.wait_and_fadeout(remains - 15),
@@ -193,7 +201,7 @@ class MPD_Client {
     const chat = this.getChat();
     const min = arg.params.length > 0 ? Number(arg.params.shift()) : 1;
     if (Number.isSafeInteger(min)) {
-      console.log(`[Qu-on] going to stop in ${min} min`);
+      console.log(`%s [Qu-on] going to stop in ${min} min`, new Date());
       await chat.sendMessage(`⏰timer set ${min}+ min`);
       chat.stopReply();
       await Utils.wait_sec(min * 60);
@@ -212,7 +220,7 @@ class MPD_Client {
       if (waitsec > remains) {
         await this.chat_stop_on_now_playing(arg);
       } else {
-        console.log(`[Qu-on] going to stop in ${min} min`);
+        console.log(`%s [Qu-on] going to stop in ${min} min`, new Date());
         await chat.sendMessage(`⛔going to stop in ${min} min`);
         chat.stopReply();
         await this.wait_and_fadeout(min * 60);
@@ -232,16 +240,14 @@ class MPD_Client {
 
   async chat_now(arg = { message_id: 0, params: [] }) {
     if (!this.isPlaying()) {
-      console.log('DEBUG now0 !isPlaying %o', arg);
       return;
     }
     const chat = this.getChat();
+
     await this.mpd.updateStatus();
     const data = await this.mpd.query('currentsong').catch(console.log);
-    console.log('DEBUG now1 %o', data);
     data.elapsed = this.mpd.status.elapsed;
     data.message_id = Number.isSafeInteger(arg.message_id) ? arg.message_id : 0;
-    console.log('DEBUG now2 %o', data);
     const nowplaying = this.formatSong(data);
     console.log('[Qu-on] now playing', nowplaying, data);
 
@@ -249,9 +255,15 @@ class MPD_Client {
     const will_stop_at = this.stopAt > Date.now() ? `⏲${dt}\n` : '';
     const message = `${will_stop_at}▶${nowplaying}`;
     data.lastMessage = message;
-    console.log('DEBUG now3 %o', data);
-    const song_id = parseInt(data.id, 10);
-    if (data.message_id > 0 && this.lastSongId === song_id && this.isValidMessage(message)) {
+
+    const song_id = parseInt(data.Id, 10);
+    if (this.songId === 0) {
+      this.songId = song_id;
+    }
+    this.songMetaDB[song_id] = data;
+
+    console.log('DEBUG now4 m%s l%s s%s %s', data.message_id, this.lastSongId, song_id, message);
+    if (data.message_id > 0 && this.lastSongId === song_id && (await this.isValidMessage(message))) {
       await chat.updateMessage(message).catch(async (e) => {
         console.log('DEBUG can not update message. %o', e);
         await chat.sendMessage(message);
@@ -259,9 +271,7 @@ class MPD_Client {
     } else {
       await chat.sendMessage(message);
     }
-
     this.lastSongId = song_id;
-    this.songMetaDB[song_id] = data;
   }
 
   async chat_status() {
@@ -287,8 +297,12 @@ class MPD_Client {
 
   async chat_info(arg = { params: [] }) {
     const chat = this.getChat();
+    if (this.songId === 0) {
+      await this.mpd.updateStatus();
+      this.songId = parseInt(this.mpd.status.songid, 10);
+    }
     const id = arg.params.length > 0 ? parseInt(arg.params.shift(), 10) : this.songId;
-    console.log('DEBUG info1 %s %o', id, arg);
+    // console.log('DEBUG info1 %s %o %o', id, arg, this.mpd.status);
     const info = await this.findSongInfo(id).catch(async (e) => {
       await chat.sendMessage(`no data found for songId:${id} %o`, e);
     });
