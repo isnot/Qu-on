@@ -26,17 +26,15 @@ class TelegramBot {
 
   async setup() {
     this.tg.on('message', async (message) => {
-      // console.log('DEBUG tgu', message);
       const command_mes = this.parseMessage({ message });
-      console.log('DEBUG tg message command', command_mes);
+      console.log('DEBUG TG message command', command_mes);
       this.reply_chat_id = command_mes.chat_id;
       // this.sendMessage(`DEBUG Message: ${command_mes.message_text}`);
       await this.doPlayerCommand(command_mes);
     });
     this.tg.on('callback_query', async (callback_query) => {
-      // console.log('DEBUG tgc', callback_query);
       const command_cbq = this.parseMessage({ callback_query });
-      console.log('DEBUG tg callback_query command', command_cbq);
+      console.log('DEBUG TG callback_query command', command_cbq);
       this.reply_chat_id = command_cbq.chat_id;
       await this.answerCallbackQuery(command_cbq).catch(console.log);
       await this.doPlayerCommand(command_cbq);
@@ -45,7 +43,7 @@ class TelegramBot {
 
   async prepare(player) {
     HOLDER.player = player;
-    console.log('%s [Qu-on] Tg startPolling', new Date());
+    console.log('%s [Qu-on] TG startPolling', new Date());
     await this.tg.startPolling();
   }
 
@@ -62,7 +60,7 @@ class TelegramBot {
       try {
         await player[command.name].call(player, command);
       } catch (e) {
-        console.log('PLAYER ERROR %o', e);
+        console.log('%s [Qu-on] PLAYER ERROR %o', new Date(), e);
       }
     } else {
       console.debug(`DEBUG notexists ${command.name}`);
@@ -107,7 +105,7 @@ class TelegramBot {
     };
     // console.log('DEBUG', data);
     const response = await this.tg.sendMessage(data.chat_id, data.text, data);
-    console.log('[Qu-on] sendMessage response: %o', response);
+    console.log('%s [Qu-on] sendMessage response: %o', new Date(), response);
     this.last_message_id = Utils.deepRetrieve(response, 'message_id');
   }
 
@@ -148,7 +146,7 @@ class TelegramBot {
       data.reply_markup = JSON.stringify(reply_markup);
     }
     const response = await this.tg.editMessageText(data.text, data);
-    console.log('[Qu-on] editMessageText response: %o', response);
+    console.log('%s [Qu-on] editMessageText response: %o', new Date(), response);
   }
 
   async answerCallbackQuery(command = {}) {
@@ -157,7 +155,7 @@ class TelegramBot {
       text: `OK ${command.from.username}, ${command.message_text} ${command.params.join('|')}`,
       show_alert: Utils.safeRetrieve(this.config, 'show_alert', false),
     });
-    console.log('[Qu-on] answerCallbackQuery response: %o', response);
+    console.log('%s [Qu-on] answerCallbackQuery response: %o', new Date(), response);
   }
 }
 
