@@ -68,7 +68,7 @@ class MPD_Client {
   }
 
   remainsSec() {
-    return this.mpd.status.duration - this.mpd.status.elapsed;
+    return Number(this.mpd.status.duration) - Number(this.mpd.status.elapsed);
   }
 
   isPlaying() {
@@ -118,6 +118,19 @@ class MPD_Client {
       throw new Error('exception: unknown song id. %s %o', s_id, e);
     }
     throw new Error('unknown song id. %s', s_id);
+  }
+
+  async stop_after_playing(get_sleep_sec) {
+    const chat = this.getChat();
+    await this.mpd.updateStatus();
+    const sleep = await get_sleep_sec();
+    console.log('DEBUG sap', typeof get_sleep_sec, sleep);
+    console.log(`%s [Qu-on] going to stop after ${sleep} sec`, new Date());
+    await Promise.all([
+      await chat.sendMessage(`⛔going to stop after ${Utils.formatSeconds(sleep)}`),
+      await this.wait_and_fadeout(sleep - 15),
+    ]);
+    chat.stopReply();
   }
 
   async wait_and_fadeout(sec) {
@@ -183,19 +196,18 @@ class MPD_Client {
 
   // 今の曲の最後でフェードアウト
   async chat_stop_on_now_playing() {
-    const chat = this.getChat();
-    await this.mpd.updateStatus();
-    const remains = this.remainsSec();
-    console.log(`%s [Qu-on] going to stop in ${remains} sec`, new Date());
-    await Promise.all([
-      await chat.sendMessage(`⛔going to stop in ${Utils.formatSeconds(remains)}`),
-      await this.wait_and_fadeout(remains - 15),
-    ]);
-    chat.stopReply();
+    await this.stop_after_playing(() => {
+      return this.remainsSec();
+    });
   }
 
   // 次の曲の最後でフェードアウト
-  async stop_on_next_playing() {}
+  async chat_stop_on_next_playing() {
+    await this.stop_after_playing(async () => {
+      const data = await this.findSongMeta(parseInt(this.mpd.status.nextsongid, 10));
+      return this.remainsSec() + Number(data.duration);
+    });
+  }
 
   // n分後、再生中の曲の最後でフェードアウト
   async chat_after_minute_and_stop_on_playing(arg = { params: [] }) {
@@ -232,7 +244,15 @@ class MPD_Client {
     const chat = this.getChat();
     this.stopAt = 0;
     Utils.clearTimer();
-    await chat.sendMessage('clear Timer');
+    await Promise.all([
+      await chat.sendMessage('♻clear timer'),
+      (async () => {
+        await this.mpd.command('single', 0);
+        await this.mpd.command('repeat', 0);
+        await this.mpd.command('random', 0);
+        await this.mpd.command('consume', 0);
+      })(),
+    ]);
     // this.getChat().stopReply();
   }
 
@@ -255,7 +275,7 @@ class MPD_Client {
     console.log('[Qu-on] now playing', nowplaying, data);
 
     const dt = new Date(this.stopAt).toLocaleTimeString();
-    const will_stop_at = this.stopAt > Date.now() ? `⏲${dt}\n` : '';
+    const will_stop_at = this.stopAt > Date.now() ? `💤⏲${dt}\n` : '';
     const message = `${will_stop_at}▶${nowplaying}`;
     data.lastMessage = message;
 
@@ -342,11 +362,62 @@ class MPD_Client {
   // chat command: send inline keyboard
   // ////////////////////////
 
-  async chat_key() {
+  async chat_informations() {
     const chat = this.getChat();
-    await chat.sendMessage('?', {
+    await chat.sendMessage('ℹ', {
       reply_markup: {
-        inline_keyboard: this.config.user_keybord,
+        inline_keyboard: this.config.informations_keyboard,
+      },
+    });
+    chat.stopReply();
+  }
+
+  async chat_playback_controls() {
+    const chat = this.getChat();
+    await chat.sendMessage('📻', {
+      reply_markup: {
+        inline_keyboard: this.config.playback_controls_keyboard,
+      },
+    });
+    chat.stopReply();
+  }
+
+  async chat_stop_timer() {
+    const chat = this.getChat();
+    await chat.sendMessage('⏲', {
+      reply_markup: {
+        inline_keyboard: this.config.stop_timer_keyboard,
+      },
+    });
+    chat.stopReply();
+  }
+
+  async chat_remove_custom_keyboard() {
+    const chat = this.getChat();
+    await chat.sendMessage('🔚', {
+      reply_markup: {
+        remove_keyboard: true,
+      },
+    });
+    chat.stopReply();
+  }
+
+  async chat_key(arg = {}) {
+    const chat = this.getChat();
+    const username = Utils.safeRetrieve(arg, 'from.username', '');
+    const m_id = Utils.safeRetrieve(arg, 'message_id', 0);
+    const reply_to = m_id ? { reply_to_message_id: m_id, selective: true } : {};
+    const usage_link = '[❓usage](https://github.com/isnot/Qu-on)';
+    await chat.sendMessage(username ? `@${username} ${usage_link}` : `↓🔣 ${usage_link}`, {
+      resize_keyboard: true,
+      parse_mode: 'Markdown',
+      ...reply_to,
+      reply_markup: {
+        keyboard: [
+          [{ text: 'informations ℹ' }],
+          [{ text: 'playback_controls 📻' }],
+          [{ text: 'stop_timer ⏲' }],
+        ],
       },
     });
     chat.stopReply();
