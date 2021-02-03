@@ -215,6 +215,7 @@ class MPD_Client {
     const min = arg.params.length > 0 ? Number(arg.params.shift()) : 1;
     if (Number.isSafeInteger(min)) {
       console.log(`%s [Qu-on] going to stop in ${min} min`, new Date());
+      Utils.clearTimer();
       await chat.sendMessage(`⏰timer set ${min}+ min`);
       await Utils.wait_sec(min * 60);
       await this.chat_stop_on_now_playing(arg);
