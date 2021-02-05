@@ -27,14 +27,14 @@ class TelegramBot {
   async setup() {
     this.tg.on('message', async (message) => {
       const command_mes = this.parseMessage({ message });
-      console.log('DEBUG TG message command', command_mes);
+      console.debug('DEBUG TG message command', command_mes);
       this.reply_chat_id = command_mes.chat_id;
       // this.sendMessage(`DEBUG Message: ${command_mes.message_text}`);
       await this.doPlayerCommand(command_mes);
     });
     this.tg.on('callback_query', async (callback_query) => {
       const command_cbq = this.parseMessage({ callback_query });
-      console.log('DEBUG TG callback_query command', command_cbq);
+      console.debug('DEBUG TG callback_query command', command_cbq);
       this.reply_chat_id = command_cbq.chat_id;
       await this.answerCallbackQuery(command_cbq).catch(console.log);
       await this.doPlayerCommand(command_cbq);
@@ -114,7 +114,8 @@ class TelegramBot {
   }
 
   async updateMessage(text = '', reply_markup) {
-    console.debug('DEBUG updateMes c%s m%s %s', this.reply_chat_id, this.last_message_id, text);
+    // This method is buggy...
+    // console.debug('DEBUG updateMes c%s m%s %s', this.reply_chat_id, this.last_message_id, text);
     if (Number.isSafeInteger(this.reply_chat_id) && Number.isSafeInteger(this.last_message_id)) {
       return await this.updateMessageHTML(
         this.reply_chat_id,
@@ -152,22 +153,12 @@ class TelegramBot {
   async answerCallbackQuery(command = {}) {
     // console.debug('answerCQ', command);
     const response = await this.tg.answerCallbackQuery(command.callback_query_id, {
-      text: `OK ${command.from.username}, ${command.message_text} ${command.params.join('|')}`,
+      text: `OK ${command.from.username}, ${command.message_text}`, // TODO
       show_alert: Utils.safeRetrieve(this.config, 'show_alert', false),
     });
     console.log('%s [Qu-on] answerCallbackQuery response: %o', new Date(), response);
   }
 }
-
-// reply_markup: {
-//   inline_keyboard: [
-//     [
-//       {
-//         text: 'Visit us!',
-//         url: 'https://github.com/mast/telegram-bot-api'}
-//     ]
-//   ]
-// }
 
 module.exports = {
   TelegramBot,

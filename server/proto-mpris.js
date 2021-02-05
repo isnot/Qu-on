@@ -3,6 +3,8 @@
 //  process.exit(code=0);
 // var util = require('util');
 var mpris = require('/home/naoto/repository/node-mpris/mpris.js');
+// const mpris = require('node-mpris');
+// const msheet = require('./mandala_sheet_service/');
 
 mpris.Player.on('MetadataChanged', function (newValue, oldValue) {
   if (!oldValue || Object.keys(newValue).length != Object.keys(oldValue).length) {

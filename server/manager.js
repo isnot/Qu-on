@@ -1,8 +1,6 @@
 const { TelegramBot } = require('./telegram_bot_poll.js');
 const { MPD_Client } = require('./mpd_client.js');
 const Utils = require('./utility.js');
-// const mpris = require('node-mpris');
-// const msheet = require('./mandala_sheet_service/');
 
 class BotManager {
   constructor(config) {
@@ -10,8 +8,6 @@ class BotManager {
     this.iv = 0;
     this.in_process = false;
     this.mpd = undefined;
-    this.mpris = undefined;
-    this.playerctl = undefined;
     this.tg = undefined;
   }
 
@@ -47,7 +43,6 @@ class BotManager {
         await Promise.all([callback(), Utils.wait_sec(this.config.process_interval_sec)]);
       }
     }
-    // throw new Error('Not suported action');
   }
 }
 

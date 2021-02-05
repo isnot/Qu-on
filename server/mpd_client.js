@@ -19,7 +19,7 @@ class MPD_Client {
 
   async setup() {
     this.mpd.on('error', async (e) => {
-      console.log('%s [Qu-on] MPD ERROR %s', new Date(), String(e).substr(0, 90));
+      console.log('%s [Qu-on] MPD ERROR %s', new Date(), String(e).substr(0, 99));
     });
     this.mpd.on('ready', async (status, server) => {
       console.log('%s [Qu-on] MPD ready. %o %o', new Date(), server, status);
@@ -143,11 +143,10 @@ class MPD_Client {
   }
 
   async fadeout(sec = 15) {
-    const [STEP1, STEP2, THRESHOLD, NUMS] = [4, 9, 40, 35];
+    const [STEP1, STEP2, THRESHOLD, NUMS] = this.config.fadeout_operations;
     if (!this.isPlaying()) {
       return;
     }
-    // await this.mpd.command('single', 1);
     const period = sec / NUMS;
     const ori_vol = Number(this.mpd.status.volume);
     let vol = parseInt(ori_vol * 100, 10);
@@ -167,8 +166,6 @@ class MPD_Client {
     }
     console.timeEnd('DEBUG_fadeout');
     await this.mpd.pause(1); // no resume playback
-    // await Utils.wait_sec(3);
-    // await this.mpd.command('single', 0);
     await this.mpd.volume(100); // restore volume
   }
 
@@ -408,7 +405,7 @@ class MPD_Client {
     const username = Utils.safeRetrieve(arg, 'from.username', '');
     const m_id = Utils.safeRetrieve(arg, 'message_id', 0);
     const reply_to = m_id ? { reply_to_message_id: m_id, selective: true } : {};
-    const usage_link = '[❓usage](https://github.com/isnot/Qu-on)';
+    const usage_link = this.config.usage_link_markdown;
     await chat.sendMessage(username ? `@${username} ${usage_link}` : `↓🔣 ${usage_link}`, {
       resize_keyboard: true,
       parse_mode: 'Markdown',

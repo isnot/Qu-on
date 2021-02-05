@@ -59,8 +59,8 @@ class Utils {
   formatSeconds(sec = 0, su = 1) {
     const min = Math.trunc(sec / 60);
     const sec_f = Number.parseFloat(sec % 60).toFixed(su);
-    const s_sec = Number(sec_f) < 10 ? `0${sec_f}` : String(sec_f);
-    return `${min}:${s_sec}`;
+    const sec_s = Number(sec_f) < 10 ? `0${sec_f}` : String(sec_f);
+    return `${min}:${sec_s}`;
   }
 
   objToStr(value, depth = 1) {
@@ -179,6 +179,16 @@ class Utils {
       }
     });
     return h;
+  }
+
+  replaceByHash(text = '', obj = {}) {
+    if (typeof text !== 'string') {
+      return text;
+    }
+    const regex = new RegExp('(?:' + Object.keys(obj).join('|') + ')', 'g');
+    return text.replace(regex, (match) => {
+      return obj[match];
+    });
   }
 
   replaceCharactorEntity4TgHtml(text) {
