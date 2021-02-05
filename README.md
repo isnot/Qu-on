@@ -21,7 +21,7 @@ sample conf for [Supervisor](http://supervisord.org/)
 # Run
 
 ```bash
-$cd YOUR_DIR_TO/Qu-on
+$ cd YOUR_DIR_TO/Qu-on
 $ node index.js
 ```
 
