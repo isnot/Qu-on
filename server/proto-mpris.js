@@ -1,24 +1,22 @@
 //#!/usr/bin/env node
 
 //  process.exit(code=0);
-
-
-var util = require('util');
+// var util = require('util');
 var mpris = require('/home/naoto/repository/node-mpris/mpris.js');
+// const mpris = require('node-mpris');
+// const msheet = require('./mandala_sheet_service/');
 
 mpris.Player.on('MetadataChanged', function (newValue, oldValue) {
-  if(!oldValue || Object.keys(newValue).length != Object.keys(oldValue).length) {
-    console.log("Metadata updated:");
-    console.log(util.inspect(newValue, showHidden=false, depth=2, colorize=true));
+  if (!oldValue || Object.keys(newValue).length != Object.keys(oldValue).length) {
+    console.log('Metadata updated:');
   }
 });
 
-
 mpris.Player.on('PlaybackStatusChanged', function (newValue, oldValue) {
-  if(newValue != oldValue) {
+  if (newValue != oldValue) {
     mpris.GetIdentity(function (error, identity) {
       mpris.Player.GetMetadata(function (error, metadata) {
-        console.log(identity+' is now '+newValue.toLowerCase()+' "'+metadata['xesam:url']+'"');
+        console.log(identity + ' is now ' + newValue.toLowerCase() + ' "' + metadata['xesam:url'] + '"');
       });
     });
   }
@@ -45,7 +43,6 @@ mpris.Player.on('PlaybackStatusChanged', function (newValue, oldValue) {
 // NuvolaAppYoutubeMusic
 // NuvolaAppSoundcloud
 
-
 // mpris.connect('NuvolaAppSoundcloud', (error) => {
 //   mpris.Player.Play();
 //   mpris.Player.Next();
@@ -57,16 +54,28 @@ mpris.Player.on('PlaybackStatusChanged', function (newValue, oldValue) {
 //   console.log(mpris.Player.Playlists);
 // });
 
-mpris.connect('NuvolaAppYoutubeMusic', function (error) {
+// mpris.connect('NuvolaAppYoutubeMusic', function (error) {
+//   console.log(error);
+//   mpris.Player.OpenUri('https://youtu.be/c0TJUVQ2hDI', function (error) {
+//     mpris.Player.Play(function(error){
+//       console.log(error);
+//       setTimeout(() => {
+//         console.log('NEXT!!');
+//         mpris.Player.Next();
+//       }, 20000);
+//     });
+//     console.log(mpris.Player.Playlists);
+//   });
+// });
+
+mpris.connect('mpd', (error) => {
+  console.log(mpris.Player.Playlists);
+  mpris.Player.Play();
+  mpris.Player.Next();
+  setTimeout(() => {
+    console.log('NEXT!!');
+    mpris.Player.Next();
+  }, 20000);
   console.log(error);
-  mpris.Player.OpenUri('https://youtu.be/c0TJUVQ2hDI', function (error) {
-    mpris.Player.Play(function(error){
-      console.log(error);
-      setTimeout(() => {
-        console.log('NEXT!!');
-        mpris.Player.Next();
-      }, 20000);
-    });
-    console.log(mpris.Player.Playlists);
-  });
+  console.log(mpris.Player.Playlists);
 });

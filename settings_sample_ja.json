@@ -1,0 +1,109 @@
+{
+  "product_name": "Qu-on",
+  "bot_api_key": "YOUR_BOT_API_KEY",
+  "chat_id": "YOUR_CHAT_ID",
+  "disable_web_page_preview": "true",
+  "parse_mode": "HTML",
+  "show_alert": false,
+  "process_interval_sec": 1,
+  "mpd_connect": {
+    "type": "ipc",
+    "ipc": "/var/run/mpd/socket",
+    "host": "localhost",
+    "port": 6600,
+    "keepAlive": false
+  },
+  "fadeout_operations": [
+    4,
+    9,
+    40,
+    35
+  ],
+  "usage_link_markdown": "[❓説明書](https://github.com/isnot/Qu-on)",
+  "informations_keyboard": [
+    [
+      {
+        "text": "🎧now playing",
+        "callback_data": "now"
+      }
+    ],
+    [
+      {
+        "text": "🎵info",
+        "callback_data": "info"
+      },
+      {
+        "text": "🎼next",
+        "callback_data": "next_song"
+      },
+      {
+        "text": "🤖usage",
+        "url": "https://github.com/isnot/Qu-on"
+      }
+    ]
+  ],
+  "playback_controls_keyboard": [
+    [
+      {
+        "text": "⏮",
+        "callback_data": "prev"
+      },
+      {
+        "text": "▶",
+        "callback_data": "play"
+      },
+      {
+        "text": "⏯",
+        "callback_data": "pause_or_resume"
+      },
+      {
+        "text": "⏹",
+        "callback_data": "stop"
+      },
+      {
+        "text": "⏭",
+        "callback_data": "next"
+      },
+      {
+        "text": "🔚",
+        "callback_data": "remove_custom_keyboard"
+      }
+    ],
+    [
+      {
+        "text": "♻clear timer",
+        "callback_data": "clear_timer"
+      },
+      {
+        "text": "📉fadeout",
+        "callback_data": "fadeout 20"
+      }
+    ]
+  ],
+  "stop_timer_keyboard": [
+    [
+      {
+        "text": "この曲の最後で停止",
+        "callback_data": "stop_on_now_playing"
+      }
+    ],
+    [
+      {
+        "text": "次の曲の最後で停止",
+        "callback_data": "stop_on_next_playing"
+      }
+    ],
+    [
+      {
+        "text": "20分後に、曲の最後で停止",
+        "callback_data": "after_minute_and_stop_on_playing 20"
+      }
+    ],
+    [
+      {
+        "text": "30分以内に停止",
+        "callback_data": "stop_on_now_playing_or_minute 30"
+      }
+    ]
+  ]
+}
