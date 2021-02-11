@@ -185,9 +185,10 @@ class Utils {
     if (typeof text !== 'string') {
       return text;
     }
-    const regex = new RegExp('(?:' + Object.keys(obj).join('|') + ')', 'g');
+    // eslint-disable-next-line security-node/non-literal-reg-expr
+    const regex = new RegExp(`(?:${Object.keys(obj).replace(/\W/g, '').join('|')})`, 'g');
     return text.replace(regex, (match) => {
-      return obj[match];
+      return obj[match] ? obj[match] : '';
     });
   }
 
