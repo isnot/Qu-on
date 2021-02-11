@@ -117,7 +117,7 @@ class TelegramBot {
     // This method is buggy...
     // console.debug('DEBUG updateMes c%s m%s %s', this.reply_chat_id, this.last_message_id, text);
     if (Number.isSafeInteger(this.reply_chat_id) && Number.isSafeInteger(this.last_message_id)) {
-      return await this.updateMessageHTML(
+      return this.updateMessageHTML(
         this.reply_chat_id,
         this.last_message_id,
         Utils.replaceCharactorEntity4TgHtml(text),
