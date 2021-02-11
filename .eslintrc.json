@@ -1,9 +1,10 @@
 {
   "env": {
     "browser": true,
+    "es2020": true,
     "commonjs": true,
     "node": true,
-    "es2020": true
+    "jest/globals": true,
   },
   "extends": [
     "eslint:recommended",
@@ -18,7 +19,8 @@
   "plugins": [
     "prettier",
     "node",
-    "security-node"
+    "security-node",
+    "jest"
   ],
   "rules": {
     "prettier/prettier": "error",
