@@ -3,6 +3,10 @@
   "version": "1.0.1",
   "description": "control music player via chat.",
   "main": "index.js",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=10.13.0"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "eslint": "eslint server/*.js",
@@ -20,7 +24,9 @@
     "eslint-config-airbnb-base": "^14.2.1",
     "eslint-config-prettier": "^7.2.0",
     "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^3.3.1",
+    "eslint-plugin-security-node": "^1.0.14",
     "prettier": "^2.2.1"
   }
 }

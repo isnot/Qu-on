@@ -2,21 +2,29 @@
   "env": {
     "browser": true,
     "commonjs": true,
+    "node": true,
     "es2020": true
   },
   "extends": [
     "eslint:recommended",
+    "plugin:node/recommended",
+    "plugin:security-node/recommended",
     "plugin:prettier/recommended"
   ],
   "parserOptions": {
-    "ecmaVersion": 11,
+    "ecmaVersion": 2020,
     "sourceType": "module"
   },
   "plugins": [
-    "prettier"
+    "prettier",
+    "node",
+    "security-node"
   ],
   "rules": {
     "prettier/prettier": "error",
+    "node/exports-style": ["error", "module.exports"],
+    "node/no-deprecated-api": ["error"],
+    "security-node/detect-crlf": [0],
     "semi": [
       "error",
       "always"
