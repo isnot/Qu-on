@@ -111,7 +111,7 @@ class MPD_Client {
       });
       // console.log('DEBUG fSM3 %s %o', song_id, song_m);
       if (Utils.hasProperty(song_m, 'file')) {
-        this.songMetaDB[song_id] = song_m;
+        this.songMetaDB[`${song_id}`] = song_m;
         return song_m;
       }
     } catch (e) {
@@ -282,7 +282,7 @@ class MPD_Client {
       this.songId = song_id;
     }
     this.lastSongId = song_id;
-    this.songMetaDB[song_id] = data;
+    this.songMetaDB[`${song_id}`] = data;
     await chat.sendMessage(message);
 
     // console.log('DEBUG now4 m%s l%s s%s %s', data.message_id, this.lastSongId, song_id, message);

@@ -40,7 +40,7 @@ class Utils {
     try {
       pos.split('.').forEach((el) => {
         if (this.hasProperty(cur, el)) {
-          cur = cur[el];
+          cur = cur[`${el}`];
         } else {
           throw new Error('deepRetrieve: element not found');
         }
@@ -78,7 +78,7 @@ class Utils {
       });
     } else if (typeof target === 'object') {
       Object.keys(target).forEach((key) => {
-        func(key, target[key]);
+        func(key, target[`${key}`]);
       });
     }
   }
@@ -127,9 +127,9 @@ class Utils {
     const hasVk = typeof vk === 'string';
     this.each(ah, (item) => {
       if (hasVk) {
-        h[item[pk]] = item[vk];
+        h[item[`${pk}`]] = item[`${vk}`];
       } else {
-        h[item[pk]] = item;
+        h[item[`${pk}`]] = item;
       }
     });
     return h;
@@ -139,13 +139,13 @@ class Utils {
     const h = {};
     const hasVk = typeof vk === 'string';
     this.each(ah, (item) => {
-      if (!this.hasProperty(h, item[pk])) {
-        h[item[pk]] = [];
+      if (!this.hasProperty(h, item[`${pk}`])) {
+        h[item[`${pk}`]] = [];
       }
       if (hasVk) {
-        h[item[pk]].push(item[vk]);
+        h[item[`${pk}`]].push(item[`${vk}`]);
       } else {
-        h[item[pk]].push(item);
+        h[item[`${pk}`]].push(item);
       }
     });
     return h;
@@ -159,7 +159,7 @@ class Utils {
     let counter = 0;
     this.each(ah, (item) => {
       if (typeof i === 'number') {
-        pk = item[i];
+        pk = item[`${i}`];
       } else {
         pk = counter;
         counter += 1;
@@ -168,14 +168,14 @@ class Utils {
         iidx = 0;
         ih = {};
         this.each(item, (el) => {
-          ih[vi[iidx]] = el;
+          ih[vi[`${iidx}`]] = el;
           iidx += 1;
         });
-        h[pk] = ih;
+        h[`${pk}`] = ih;
       } else if (Number(vi) > -1) {
-        h[pk] = item[vi];
+        h[`${pk}`] = item[`${vi}`];
       } else {
-        h[pk] = item;
+        h[`${pk}`] = item;
       }
     });
     return h;
@@ -185,10 +185,11 @@ class Utils {
     if (typeof text !== 'string') {
       return text;
     }
-    // eslint-disable-next-line security-node/non-literal-reg-expr
+    // eslint-disable-next-line security-node/non-literal-reg-expr, security/detect-non-literal-regexp
     const regex = new RegExp(`(?:${Object.keys(obj).replace(/\W/g, '').join('|')})`, 'g');
+
     return text.replace(regex, (match) => {
-      return obj[match] ? obj[match] : '';
+      return obj[`${match}`] ? obj[`${match}`] : '';
     });
   }
 
@@ -204,7 +205,7 @@ class Utils {
       // '_' : '&#95;',
     };
     return text.replace(/[<>&]/g, (match) => {
-      return ent[match];
+      return ent[`${match}`];
     });
   }
 }
