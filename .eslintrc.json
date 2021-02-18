@@ -4,11 +4,13 @@
     "es2020": true,
     "commonjs": true,
     "node": true,
-    "jest/globals": true,
+    "jest/globals": true
   },
   "extends": [
     "eslint:recommended",
+    "plugin:json/recommended",
     "plugin:node/recommended",
+    "plugin:security/recommended",
     "plugin:security-node/recommended",
     "plugin:prettier/recommended"
   ],
@@ -19,8 +21,13 @@
   "plugins": [
     "prettier",
     "node",
+    "security",
     "security-node",
-    "jest"
+    "xss",
+    "no-unsanitized",
+    "no-secrets",
+    "jest",
+    "json"
   ],
   "rules": {
     "prettier/prettier": "error",
