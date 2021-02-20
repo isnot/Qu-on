@@ -273,7 +273,7 @@ class MPD_Client {
     console.log('[Qu-on] now playing', nowplaying, data);
 
     const dt = new Date(this.stopAt).toLocaleTimeString();
-    const will_stop_at = this.stopAt > Date.now() ? `💤⏲${dt}\n` : '';
+    const will_stop_at = this.stopAt > Date.now() ? `💤⏰${dt}\n` : '';
     const message = `${will_stop_at}▶${nowplaying}`;
     data.lastMessage = message;
 
@@ -382,7 +382,7 @@ class MPD_Client {
 
   async chat_stop_timer() {
     const chat = this.getChat();
-    await chat.sendMessage('⏲', {
+    await chat.sendMessage('⏰', {
       reply_markup: {
         inline_keyboard: this.config.stop_timer_keyboard,
       },
@@ -412,9 +412,10 @@ class MPD_Client {
       ...reply_to,
       reply_markup: {
         keyboard: [
-          [{ text: 'informations ℹ' }],
-          [{ text: 'playback_controls 📻' }],
-          [{ text: 'stop_timer ⏲' }],
+          [{ text: '⏮' }, { text: '▶' }, { text: '⏯' }, { text: '⏹' }, { text: '⏭' }, { text: '📉' }],
+          [{ text: '⏰stop timer' }],
+          [{ text: '🎧now playing' }],
+          [{ text: '🎼next' }, { text: '♻clear timer' }, { text: '🤖usage' }],
         ],
       },
     });

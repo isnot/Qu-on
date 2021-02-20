@@ -86,7 +86,9 @@ class TelegramBot {
     command.message_id = message.message_id;
 
     const params = command.message_text.split(' ');
-    command.name = 'chat_' + params.shift();
+    const i_command_name = params.shift();
+    const alias = new Map(this.config.emoji_to_command);
+    command.name = alias.has(i_command_name) ? `chat_${alias.get(i_command_name)}` : `chat_${i_command_name}`;
     command.params = params;
     // console.log('DEBUG pM', message, command);
     return command;
