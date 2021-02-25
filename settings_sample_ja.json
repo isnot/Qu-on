@@ -20,6 +20,19 @@
     35
   ],
   "usage_link_markdown": "[❓説明書](https://github.com/isnot/Qu-on)",
+  "emoji_to_command": [
+    ["⏮", "prev"],
+    ["▶", "play"],
+    ["⏯", "pause_or_resume"],
+    ["⏹", "stop"],
+    ["⏭", "next"],
+    ["📉", "fadeout"],
+    ["⏰stop", "stop_timer"],
+    ["🎧now", "now"],
+    ["🎼next", "next_song"],
+    ["♻clear", "clear_timer"],
+    ["🤖usage", "key"]
+  ],
   "informations_keyboard": [
     [
       {
