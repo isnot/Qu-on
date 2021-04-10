@@ -20,7 +20,7 @@
   "dependencies": {
     "bluebird": "^3.7.2",
     "node-telegram-bot-api": "^0.52.0",
-    "tm-node-mpd": "git+https://github.com/isnot/tm-node-mpd.git#isnot"
+    "tm-node-mpd": "git+https://github.com/isnot/tm-node-mpd.git#isnot-brush-up-2"
   },
   "devDependencies": {
     "eslint": "^7.24.0",
