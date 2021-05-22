@@ -20,6 +20,11 @@
   "dependencies": {
     "bluebird": "^3.7.2",
     "node-telegram-bot-api": "^0.53.0",
+    "puppeteer": "^9.1.1",
+    "puppeteer-extra": "^3.1.18",
+    "puppeteer-extra-plugin-adblocker": "^2.11.11",
+    "puppeteer-extra-plugin-block-resources": "^2.2.9",
+    "puppeteer-extra-plugin-stealth": "^2.7.8",
     "tm-node-mpd": "git+https://github.com/isnot/tm-node-mpd.git#isnot-brush-up-2"
   },
   "devDependencies": {
