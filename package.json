@@ -23,7 +23,7 @@
     "tm-node-mpd": "git+https://github.com/isnot/tm-node-mpd.git#isnot-brush-up-2"
   },
   "devDependencies": {
-    "eslint": "^7.27.0",
+    "eslint": "^7.30.0",
     "eslint-config-airbnb-base": "^14.2.1",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-import": "^2.23.4",
@@ -36,7 +36,7 @@
     "eslint-plugin-security": "^1.4.0",
     "eslint-plugin-security-node": "^1.0.14",
     "eslint-plugin-xss": "^0.1.10",
-    "jest": "^27.0.3",
-    "prettier": "^2.3.0"
+    "jest": "^27.0.6",
+    "prettier": "^2.3.2"
   }
 }
