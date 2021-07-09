@@ -20,7 +20,7 @@
   "dependencies": {
     "bluebird": "^3.7.2",
     "node-telegram-bot-api": "^0.53.0",
-    "puppeteer": "^10.0.0",
+    "puppeteer": "^10.1.0",
     "puppeteer-extra": "^3.1.18",
     "puppeteer-extra-plugin-adblocker": "^2.11.11",
     "puppeteer-extra-plugin-block-resources": "^2.2.9",
@@ -28,7 +28,7 @@
     "tm-node-mpd": "git+https://github.com/isnot/tm-node-mpd.git#isnot-brush-up-2"
   },
   "devDependencies": {
-    "eslint": "^7.28.0",
+    "eslint": "^7.30.0",
     "eslint-config-airbnb-base": "^14.2.1",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-import": "^2.23.4",
@@ -41,7 +41,7 @@
     "eslint-plugin-security": "^1.4.0",
     "eslint-plugin-security-node": "^1.0.14",
     "eslint-plugin-xss": "^0.1.10",
-    "jest": "^27.0.4",
-    "prettier": "^2.3.1"
+    "jest": "^27.0.6",
+    "prettier": "^2.3.2"
   }
 }
