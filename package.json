@@ -20,7 +20,7 @@
   "dependencies": {
     "bluebird": "^3.7.2",
     "node-telegram-bot-api": "^0.54.0",
-    "puppeteer": "^10.1.0",
+    "puppeteer": "^10.2.0",
     "puppeteer-extra": "^3.1.18",
     "puppeteer-extra-plugin-adblocker": "^2.11.11",
     "puppeteer-extra-plugin-block-resources": "^2.2.9",
@@ -41,7 +41,7 @@
     "eslint-plugin-security": "^1.4.0",
     "eslint-plugin-security-node": "^1.0.14",
     "eslint-plugin-xss": "^0.1.10",
-    "jest": "^27.1.0",
-    "prettier": "^2.3.2"
+    "jest": "^27.2.0",
+    "prettier": "^2.4.0"
   }
 }
