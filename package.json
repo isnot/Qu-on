@@ -19,24 +19,24 @@
   },
   "dependencies": {
     "bluebird": "^3.7.2",
-    "node-telegram-bot-api": "^0.56.0",
+    "node-telegram-bot-api": "^0.57.0",
     "tm-node-mpd": "git+https://github.com/isnot/tm-node-mpd.git#isnot-brush-up-2"
   },
   "devDependencies": {
-    "eslint": "^8.11.0",
+    "eslint": "^8.15.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-config-prettier": "^8.5.0",
-    "eslint-plugin-import": "^2.25.4",
-    "eslint-plugin-jest": "^26.1.1",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-jest": "^26.1.5",
     "eslint-plugin-json": "^3.1.0",
     "eslint-plugin-no-secrets": "^0.8.9",
     "eslint-plugin-no-unsanitized": "^4.0.1",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^4.0.0",
-    "eslint-plugin-security": "^1.4.0",
+    "eslint-plugin-security": "^1.5.0",
     "eslint-plugin-security-node": "^1.1.1",
     "eslint-plugin-xss": "^0.1.11",
-    "jest": "^27.5.1",
-    "prettier": "^2.5.1"
+    "jest": "^28.1.0",
+    "prettier": "^2.6.2"
   }
 }
