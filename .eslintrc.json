@@ -24,7 +24,6 @@
     "security",
     "security-node",
     "xss",
-    "no-unsanitized",
     "no-secrets",
     "jest",
     "json"
