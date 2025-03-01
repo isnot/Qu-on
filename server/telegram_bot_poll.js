@@ -15,6 +15,12 @@ class TelegramBot {
       polling: {
         autoStart: false,
       },
+      request: {
+        agentOptions: {
+          keepAlive: true,
+          family: 4
+        }
+      }
     });
     this.reply_chat_id = undefined;
     this.last_message_id = undefined;
@@ -73,13 +79,13 @@ class TelegramBot {
     const i_message = Utils.deepRetrieve(incomming, 'message');
     const message = callback_query ? callback_query.message : i_message;
     if (callback_query) {
-      command.message_text = callback_query.data;
+      command.message_text = callback_query.data || '';
       command.from = callback_query.from;
       command.callback_query_id = callback_query.id;
       command.chat_instance = callback_query.chat_instance;
     }
     if (i_message) {
-      command.message_text = message.text;
+      command.message_text = message.text || '';
       command.from = message.from;
     }
     command.chat_id = message.chat.id;
